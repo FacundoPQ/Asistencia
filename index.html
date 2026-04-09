@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="SDB">
-<title>SDB — Recolecta</title>
+<meta name="apple-mobile-web-app-title" content="SDB Pro">
+<title>SDB — Gestión Total</title>
 <style>
   :root {
     --amarillo: #F5C400;
@@ -19,99 +19,187 @@
     --texto-muted: #888;
     --verde: #3DB85A;
     --rojo: #E24B4A;
-    --azul: #378ADD;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   html, body { height: 100%; overflow: hidden; background: var(--fondo); color: var(--texto); font-family: -apple-system, sans-serif; }
   #app { display: flex; flex-direction: column; height: 100%; }
   header { background: var(--amarillo); padding: 12px 16px; flex-shrink: 0; }
   header h1 { font-size: 15px; font-weight: 800; color: #1A1A1A; text-transform: uppercase; }
+  
   .semana-nav { display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: var(--superficie); border-bottom: 1px solid var(--borde); flex-shrink: 0; }
   .semana-nav button { background: var(--superficie2); border: 1px solid var(--borde); color: var(--texto); border-radius: 8px; padding: 6px 14px; font-size: 20px; }
-  .dias-header { display: grid; grid-template-columns: 100px repeat(6, 1fr); background: var(--superficie); border-bottom: 2px solid var(--amarillo); padding: 0 8px; }
-  .dia-col { text-align: center; padding: 8px 2px; font-size: 10px; font-weight: 700; color: var(--texto-muted); }
+  
+  /* Grid de 8 columnas: 1 para nombre + 7 para días de la semana */
+  .dias-header { display: grid; grid-template-columns: 85px repeat(7, 1fr); background: var(--superficie); border-bottom: 2px solid var(--amarillo); padding: 0 4px; }
+  .dia-col { text-align: center; padding: 8px 1px; font-size: 9px; font-weight: 700; color: var(--texto-muted); }
   .dia-col.hoy { color: var(--amarillo); }
+  
   #scroll-area { flex: 1; overflow-y: auto; padding-bottom: 80px; }
-  .obrero-row { display: grid; grid-template-columns: 100px repeat(6, 1fr); border-bottom: 1px solid var(--borde); padding: 0 8px; align-items: center; min-height: 58px; }
-  .nombre { font-size: 12px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .estado-btn { width: 38px; height: 38px; border-radius: 10px; border: none; background: var(--superficie2); color: var(--texto-muted); font-weight: 700; position: relative; }
+  .obrero-row { display: grid; grid-template-columns: 85px repeat(7, 1fr); border-bottom: 1px solid var(--borde); padding: 0 4px; align-items: center; min-height: 58px; }
+  .nombre { font-size: 11px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  
+  .estado-btn { width: 34px; height: 34px; border-radius: 8px; border: none; background: var(--superficie2); color: var(--texto-muted); font-weight: 700; position: relative; font-size: 12px; }
   .estado-btn.presente { background: rgba(61,184,90,0.18); color: var(--verde); }
   .estado-btn.ausente { background: rgba(226,75,74,0.18); color: var(--rojo); }
   .estado-btn.horas { background: rgba(245,196,0,0.18); color: var(--amarillo-dark); font-size: 10px; border: 1px solid var(--amarillo-dark); }
+  
   .fab { position: fixed; bottom: 20px; right: 20px; width: 56px; height: 56px; border-radius: 50%; background: var(--amarillo); color: #1A1A1A; font-size: 24px; border: none; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
   .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 200; align-items: flex-end; }
   .modal { background: var(--superficie); border-radius: 20px 20px 0 0; padding: 20px; width: 100%; max-height: 90vh; overflow-y: auto; }
-  .tabs { display: flex; gap: 8px; margin-bottom: 15px; background: var(--fondo); padding: 4px; border-radius: 12px; }
-  .tab { flex: 1; padding: 10px; border-radius: 8px; font-size: 12px; font-weight: 700; text-align: center; color: var(--texto-muted); }
+  
+  .tabs { display: flex; gap: 4px; margin-bottom: 15px; background: var(--fondo); padding: 4px; border-radius: 12px; overflow-x: auto; }
+  .tab { flex: 1; padding: 10px 5px; border-radius: 8px; font-size: 10px; font-weight: 700; text-align: center; color: var(--texto-muted); white-space: nowrap; }
   .tab.active { background: var(--amarillo); color: #1A1A1A; }
-  .resumen-tabla { width: 100%; border-collapse: collapse; }
-  .resumen-tabla th { text-align: left; padding: 8px; font-size: 10px; color: var(--texto-muted); border-bottom: 1px solid var(--borde); }
-  .resumen-tabla td { padding: 12px 8px; border-bottom: 1px solid var(--borde); font-size: 13px; }
-  .pill { padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 800; }
-  .pill.v { background: rgba(61,184,90,0.15); color: var(--verde); }
-  .pill.a { background: rgba(226,75,74,0.15); color: var(--rojo); }
-  .pill.h { background: rgba(245,196,0,0.15); color: var(--amarillo-dark); }
+  
+  .resumen-tabla { width: 100%; border-collapse: collapse; margin-top: 10px; }
+  .resumen-tabla th { text-align: left; padding: 8px; font-size: 9px; color: var(--texto-muted); border-bottom: 1px solid var(--borde); text-transform: uppercase; }
+  .resumen-tabla td { padding: 10px 8px; border-bottom: 1px solid var(--borde); font-size: 12px; }
+  
+  .costo-input { width: 60px; background: var(--fondo); border: 1px solid var(--borde); color: var(--amarillo); border-radius: 4px; padding: 4px; font-size: 11px; text-align: center; }
   .input-text { width: 100%; background: var(--superficie2); border: 1px solid var(--borde); color: var(--texto); border-radius: 10px; padding: 12px; margin-top: 10px; font-family: inherit; }
-  .list-obrero { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--borde); }
+  .total-card { background: var(--superficie2); padding: 15px; border-radius: 12px; margin-bottom: 10px; border-left: 4px solid var(--amarillo); }
 </style>
 </head>
 <body>
 <div id="app">
-  <header><h1>SDB — RECOLECTA</h1></header>
+  <header><h1>SDB — CONTROL Y COSTOS</h1></header>
   <div class="semana-nav">
     <button onclick="cambiarSemana(-1)">&#8249;</button>
-    <div style="flex:1; text-align:center; font-weight:700; color:var(--amarillo); font-size:13px" id="nav-titulo"></div>
+    <div style="flex:1; text-align:center; font-weight:700; color:var(--amarillo); font-size:12px" id="nav-titulo"></div>
     <button onclick="cambiarSemana(1)">&#8250;</button>
   </div>
   <div class="dias-header" id="dias-header"></div>
   <div id="scroll-area"><div id="lista-obreros"></div></div>
 </div>
+
 <button class="fab" onclick="abrirMenu()">&#9776;</button>
+
 <div class="overlay" id="overlay" onclick="cerrarModal()">
   <div class="modal" onclick="event.stopPropagation()" id="modal-content"></div>
 </div>
+
 <script>
-const LABELS = ['SA','LU','MA','MI','JU','VI'];
+// Configuración básica
+const LABELS = ['LU','MA','MI','JU','VI','SA','DO'];
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
-// Nombres exactos de la pantalla
-let obreros = JSON.parse(localStorage.getItem('ob_v6')) || [
-  'Adolf.', 'Andrs.', 'Eleu.', 'Gavin', 'Vict.', 'Nildo', 'Geron.', 'Dario.', 'Alberto Manuel', 'JuanC. Velasq.'
-];
-let asistencia = JSON.parse(localStorage.getItem('as_v6')) || {};
-let semanaOffset = 0; let mOb = '', mDk = '';
+// Datos persistentes
+let obreros = JSON.parse(localStorage.getItem('ob_v7')) || ['Adolf.', 'Andrs.', 'Eleu.', 'Gavin', 'Vict.', 'Nildo', 'Geron.', 'Dario.', 'Alberto Manuel', 'JuanC. Velasq.'];
+let asistencia = JSON.parse(localStorage.getItem('as_v7')) || {};
+let costos = JSON.parse(localStorage.getItem('co_v7')) || {}; // { nombre: { normal: 0, extra: 0 } }
+let semanaOffset = 0;
 
-function guardar() { localStorage.setItem('ob_v6', JSON.stringify(obreros)); localStorage.setItem('as_v6', JSON.stringify(asistencia)); }
-function getLunes(o) { let h = new Date(); let d = h.getDay(); let l = new Date(h); l.setDate(h.getDate() - (d === 0 ? 6 : d - 1) + o * 7); l.setHours(0,0,0,0); return l; }
-function getDias(o) { var l = getLunes(o); return [-2, 0, 1, 2, 3, 4].map(x => { var d = new Date(l); d.setDate(l.getDate() + x); return d; }); }
+function guardar() { 
+    localStorage.setItem('ob_v7', JSON.stringify(obreros)); 
+    localStorage.setItem('as_v7', JSON.stringify(asistencia)); 
+    localStorage.setItem('co_v7', JSON.stringify(costos));
+}
+
+// Lógica de fechas
+function getLunes(o) {
+    let h = new Date();
+    let d = h.getDay();
+    let l = new Date(h);
+    l.setDate(h.getDate() - (d === 0 ? 6 : d - 1) + o * 7);
+    l.setHours(0,0,0,0);
+    return l;
+}
+
+function getDias(o) {
+    let l = getLunes(o);
+    return [0,1,2,3,4,5,6].map(x => {
+        let d = new Date(l);
+        d.setDate(l.getDate() + x);
+        return d;
+    });
+}
+
 const key = d => `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`;
 const getVal = (ob, dk) => (asistencia[ob] && asistencia[ob][dk]) ? asistencia[ob][dk] : {estado:'vacio', horas:0, nota:''};
 
+// Menú y Resúmenes
 function abrirMenu() {
-  document.getElementById('modal-content').innerHTML = `<div class="tabs"><div class="tab active" onclick="tabMenu('sem',this)">Semana</div><div class="tab" onclick="tabMenu('mes',this)">Resumen Mes</div><div class="tab" onclick="tabMenu('pers',this)">Personal</div></div><div id="tab-body"></div>`;
-  mostrarModal(); tabMenu('sem', document.querySelector('.tab.active'));
+  document.getElementById('modal-content').innerHTML = `
+    <div class="tabs">
+        <div class="tab active" onclick="tabMenu('presupuesto',this)">Presupuesto</div>
+        <div class="tab" onclick="tabMenu('sem',this)">Semana</div>
+        <div class="tab" onclick="tabMenu('config',this)">Config. Costos</div>
+        <div class="tab" onclick="tabMenu('pers',this)">Personal</div>
+    </div>
+    <div id="tab-body"></div>`;
+  mostrarModal(); tabMenu('presupuesto', document.querySelector('.tab.active'));
 }
 
 function tabMenu(t, el) {
   document.querySelectorAll('.tab').forEach(x => x.classList.remove('active')); el.classList.add('active');
   const b = document.getElementById('tab-body');
-  if (t === 'sem' || t === 'mes') {
-    let ds = [], ks = [], tit = "";
-    if (t === 'sem') { ds = getDias(semanaOffset); ks = ds.map(key); tit = "Resumen Semana"; }
-    else { const ah = new Date(); const m = ah.getMonth(); const y = ah.getFullYear(); tit = `${MESES[m]} ${y}`;
-           for(let i=1; i<=31; i++) ks.push(`${y}-${(m+1).toString().padStart(2,'0')}-${i.toString().padStart(2,'0')}`);
-    }
-    b.innerHTML = `<h3 style="font-size:13px; color:var(--amarillo); margin:5px 0 10px">${tit}</h3><table class="resumen-tabla"><tr><th>Personal</th><th>Pres.</th><th>Faltas</th><th>Extras</th></tr>` + 
+  
+  if (t === 'presupuesto') {
+    let totalMes = 0;
+    const ah = new Date();
+    const m = (ah.getMonth()+1).toString().padStart(2,'0');
+    const y = ah.getFullYear();
+
+    // Cálculo mensual simplificado basado en lo cargado
+    obreros.forEach(ob => {
+        const c = costos[ob] || { normal: 0, extra: 0 };
+        for (let k in (asistencia[ob] || {})) {
+            if (k.startsWith(`${y}-${m}`)) {
+                const v = asistencia[ob][k];
+                if (v.estado === 'presente') totalMes += (c.normal * 9); // Asumimos jornada de 9hs
+                if (v.estado === 'horas') totalMes += (c.normal * 9) + (v.horas * c.extra);
+            }
+        }
+    });
+
+    b.innerHTML = `
+        <div class="total-card">
+            <p style="font-size:11px; color:var(--texto-muted)">GASTO MES ACTUAL (${MESES[ah.getMonth()]})</p>
+            <h2 style="color:var(--amarillo)">$ ${totalMes.toLocaleString()}</h2>
+        </div>
+        <div class="total-card" style="border-left-color: var(--verde)">
+            <p style="font-size:11px; color:var(--texto-muted)">PROYECCIÓN ANUAL EST.</p>
+            <h2 style="color:var(--verde)">$ ${(totalMes * 12).toLocaleString()}</h2>
+        </div>
+        <p style="font-size:10px; color:var(--texto-muted); padding:10px">* Los cálculos se basan en los valores cargados en 'Config. Costos' y una jornada base de 9hs.</p>
+    `;
+
+  } else if (t === 'config') {
+    b.innerHTML = `<table class="resumen-tabla"><tr><th>Personal</th><th>$/Hora Normal</th><th>$/Hora Extra</th></tr>` + 
       obreros.map(ob => {
-        let p=0, a=0, h=0;
-        ks.forEach(k => { let v = getVal(ob, k); if (v.estado === 'presente' || v.estado === 'horas') p++; if (v.estado === 'ausente') a++; if (v.estado === 'horas') h += v.horas; });
-        return `<tr><td>${ob}</td><td><span class="pill v">${p}</span></td><td><span class="pill a">${a}</span></td><td><span class="pill h">${h}h</span></td></tr>`;
+        const c = costos[ob] || { normal: 0, extra: 0 };
+        return `<tr>
+            <td>${ob}</td>
+            <td><input type="number" class="costo-input" value="${c.normal}" onchange="updateCosto('${ob}', 'normal', this.value)"></td>
+            <td><input type="number" class="costo-input" value="${c.extra}" onchange="updateCosto('${ob}', 'extra', this.value)"></td>
+        </tr>`;
       }).join('') + `</table>`;
+
+  } else if (t === 'sem') {
+    let ds = getDias(semanaOffset);
+    let ks = ds.map(key);
+    b.innerHTML = `<table class="resumen-tabla"><tr><th>Personal</th><th>Días</th><th>Extras</th><th>Subtotal</th></tr>` + 
+      obreros.map(ob => {
+        let p=0, h=0, sub=0;
+        const c = costos[ob] || { normal: 0, extra: 0 };
+        ks.forEach(k => { 
+            let v = getVal(ob, k); 
+            if (v.estado === 'presente' || v.estado === 'horas') { p++; sub += (c.normal * 9); }
+            if (v.estado === 'horas') { h += v.horas; sub += (v.horas * c.extra); }
+        });
+        return `<tr><td>${ob}</td><td>${p}</td><td>${h}h</td><td><strong>$${sub.toLocaleString()}</strong></td></tr>`;
+      }).join('') + `</table>`;
+
   } else {
-    // Interfaz para agregar y eliminar personal
     b.innerHTML = obreros.map((ob, i) => `<div class="list-obrero"><span>${ob}</span><button onclick="elimOb(${i})" style="color:var(--rojo); background:none; border:none; font-size:24px">×</button></div>`).join('') + 
-      `<input type="text" id="n-nom" class="input-text" placeholder="Agregar nuevo nombre..." onkeydown="if(event.key==='Enter') addOb()">`;
+      `<input type="text" id="n-nom" class="input-text" placeholder="Nuevo nombre..." onkeydown="if(event.key==='Enter') addOb()">`;
   }
+}
+
+function updateCosto(ob, tipo, val) {
+    if(!costos[ob]) costos[ob] = { normal: 0, extra: 0 };
+    costos[ob][tipo] = parseFloat(val) || 0;
+    guardar();
 }
 
 function abrirCelda(ob, dk, lbl) {
@@ -122,45 +210,33 @@ function abrirCelda(ob, dk, lbl) {
       <button onclick="setE('presente')" style="background:var(--verde); color:white; padding:16px; border:none; border-radius:12px; font-weight:800">PRESENTE</button>
       <button onclick="setE('ausente')" style="background:var(--rojo); color:white; padding:16px; border:none; border-radius:12px; font-weight:800">AUSENTE</button>
     </div>
-    <div style="margin-top:15px"><label style="font-size:11px; color:var(--texto-muted)">HORAS EXTRA:</label>
+    <div style="margin-top:15px"><label style="font-size:11px; color:var(--texto-muted)">HORAS EXTRA (cantidad):</label>
     <input type="number" id="h-in" class="input-text" value="${d.horas||0}" step="0.5"></div>
     <textarea id="n-in" class="input-text" placeholder="Nota...">${d.nota||''}</textarea>
-    <button onclick="guardarCambios()" style="width:100%; padding:16px; background:var(--amarillo); border:none; border-radius:12px; margin-top:12px; font-weight:800; color:#1A1A1A">GUARDAR</button>`;
+    <button onclick="guardarCambios()" style="width:100%; padding:16px; background:var(--amarillo); border:none; border-radius:12px; margin-top:12px; font-weight:800; color:#1A1A1A">GUARDAR ASISTENCIA</button>`;
   mostrarModal();
 }
 
-function guardarCambios() {
-  let h = parseFloat(document.getElementById('h-in').value) || 0;
-  let n = document.getElementById('n-in').value;
-  let e = getVal(mOb, mDk).estado;
-  if (e === 'vacio' && h > 0) e = 'horas';
-  if (e === 'presente' && h > 0) e = 'horas';
-  setE(e, h, n);
-}
-
-function setE(e, h = 0, n = "") {
-  if (h > 0 && e !== 'ausente') e = 'horas';
-  if (!asistencia[mOb]) asistencia[mOb] = {};
-  asistencia[mOb][mDk] = {estado: e, horas: h, nota: n};
-  guardar(); cerrarModal(); renderizar();
-}
-
-function addOb() { let n = document.getElementById('n-nom').value; if(n){obreros.push(n); guardar(); tabMenu('pers', document.querySelectorAll('.tab')[2]); renderizar();} }
-function elimOb(i) { if(confirm('¿Eliminar de la lista?')){obreros.splice(i,1); guardar(); tabMenu('pers', document.querySelectorAll('.tab')[2]); renderizar();} }
+// ... (Resto de funciones de control iguales a las anteriores pero con las nuevas keys de guardado v7)
+function guardarCambios() { let h = parseFloat(document.getElementById('h-in').value) || 0; let n = document.getElementById('n-in').value; let e = getVal(mOb, mDk).estado; if (e === 'vacio' && h > 0) e = 'horas'; if (e === 'presente' && h > 0) e = 'horas'; setE(e, h, n); }
+function setE(e, h = 0, n = "") { if (h > 0 && e !== 'ausente') e = 'horas'; if (!asistencia[mOb]) asistencia[mOb] = {}; asistencia[mOb][mDk] = {estado: e, horas: h, nota: n}; guardar(); cerrarModal(); renderizar(); }
+function addOb() { let n = document.getElementById('n-nom').value; if(n){obreros.push(n); guardar(); tabMenu('pers', document.querySelectorAll('.tab')[3]); renderizar();} }
+function elimOb(i) { if(confirm('¿Eliminar?')){obreros.splice(i,1); guardar(); tabMenu('pers', document.querySelectorAll('.tab')[3]); renderizar();} }
 function mostrarModal() { document.getElementById('overlay').style.display = 'flex'; }
 function cerrarModal() { document.getElementById('overlay').style.display = 'none'; }
 function cambiarSemana(d) { semanaOffset += d; renderizar(); }
 
 function renderizar() {
   const ds = getDias(semanaOffset);
-  document.getElementById('nav-titulo').textContent = 'Semana del ' + ds[0].getDate() + ' al ' + ds[5].getDate() + ' de ' + MESES[ds[5].getMonth()];
-  document.getElementById('dias-header').innerHTML = '<div class="dia-col"></div>' + ds.map(d => `<div class="dia-col ${key(d)===key(new Date())?'hoy':''}">${LABELS[ds.indexOf(d)]}<br>${d.getDate()}</div>`).join('');
+  const hoyStr = key(new Date());
+  document.getElementById('nav-titulo').textContent = 'Semana del ' + ds[0].getDate() + ' al ' + ds[6].getDate() + ' de ' + MESES[ds[6].getMonth()];
+  document.getElementById('dias-header').innerHTML = '<div class="dia-col"></div>' + ds.map((d, i) => `<div class="dia-col ${key(d)===hoyStr?'hoy':''}">${LABELS[i]}<br>${d.getDate()}</div>`).join('');
   document.getElementById('lista-obreros').innerHTML = obreros.map(ob => `
     <div class="obrero-row"><div class="nombre">${ob}</div>
-      ${ds.map(d => {
+      ${ds.map((d, i) => {
         const e = getVal(ob, key(d));
         let txt = e.estado === 'presente' ? '✓' : (e.estado === 'ausente' ? '✕' : (e.estado === 'horas' ? e.horas+'h' : ''));
-        return `<div style="display:flex;justify-content:center"><button class="estado-btn ${e.estado}" onclick="abrirCelda('${ob}','${key(d)}','${LABELS[ds.indexOf(d)]} ${d.getDate()}')">${txt}${e.nota?'<div style="position:absolute;bottom:2px;right:2px;width:5px;height:5px;background:var(--amarillo);border-radius:50%"></div>':''}</button></div>`;
+        return `<div style="display:flex;justify-content:center"><button class="estado-btn ${e.estado}" onclick="abrirCelda('${ob}','${key(d)}','${LABELS[i]} ${d.getDate()}')">${txt}${e.nota?'<div style="position:absolute;bottom:2px;right:2px;width:4px;height:4px;background:var(--amarillo);border-radius:50%"></div>':''}</button></div>`;
       }).join('')}
     </div>`).join('');
 }
