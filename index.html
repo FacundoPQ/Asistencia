@@ -25,44 +25,35 @@
   #app { display: flex; flex-direction: column; height: 100%; }
   header { background: var(--amarillo); padding: 12px 16px; flex-shrink: 0; }
   header h1 { font-size: 15px; font-weight: 800; color: #1A1A1A; text-transform: uppercase; }
-  
   .semana-nav { display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: var(--superficie); border-bottom: 1px solid var(--borde); flex-shrink: 0; }
   .semana-nav button { background: var(--superficie2); border: 1px solid var(--borde); color: var(--texto); border-radius: 8px; padding: 6px 14px; font-size: 20px; }
-  
-  /* Grid de 8 columnas: 1 para nombre + 7 para días de la semana */
   .dias-header { display: grid; grid-template-columns: 85px repeat(7, 1fr); background: var(--superficie); border-bottom: 2px solid var(--amarillo); padding: 0 4px; }
   .dia-col { text-align: center; padding: 8px 1px; font-size: 9px; font-weight: 700; color: var(--texto-muted); }
   .dia-col.hoy { color: var(--amarillo); }
-  
   #scroll-area { flex: 1; overflow-y: auto; padding-bottom: 80px; }
   .obrero-row { display: grid; grid-template-columns: 85px repeat(7, 1fr); border-bottom: 1px solid var(--borde); padding: 0 4px; align-items: center; min-height: 58px; }
   .nombre { font-size: 11px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  
   .estado-btn { width: 34px; height: 34px; border-radius: 8px; border: none; background: var(--superficie2); color: var(--texto-muted); font-weight: 700; position: relative; font-size: 12px; }
   .estado-btn.presente { background: rgba(61,184,90,0.18); color: var(--verde); }
   .estado-btn.ausente { background: rgba(226,75,74,0.18); color: var(--rojo); }
   .estado-btn.horas { background: rgba(245,196,0,0.18); color: var(--amarillo-dark); font-size: 10px; border: 1px solid var(--amarillo-dark); }
-  
   .fab { position: fixed; bottom: 20px; right: 20px; width: 56px; height: 56px; border-radius: 50%; background: var(--amarillo); color: #1A1A1A; font-size: 24px; border: none; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
   .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 200; align-items: flex-end; }
   .modal { background: var(--superficie); border-radius: 20px 20px 0 0; padding: 20px; width: 100%; max-height: 90vh; overflow-y: auto; }
-  
   .tabs { display: flex; gap: 4px; margin-bottom: 15px; background: var(--fondo); padding: 4px; border-radius: 12px; overflow-x: auto; }
   .tab { flex: 1; padding: 10px 5px; border-radius: 8px; font-size: 10px; font-weight: 700; text-align: center; color: var(--texto-muted); white-space: nowrap; }
   .tab.active { background: var(--amarillo); color: #1A1A1A; }
-  
   .resumen-tabla { width: 100%; border-collapse: collapse; margin-top: 10px; }
-  .resumen-tabla th { text-align: left; padding: 8px; font-size: 9px; color: var(--texto-muted); border-bottom: 1px solid var(--borde); text-transform: uppercase; }
-  .resumen-tabla td { padding: 10px 8px; border-bottom: 1px solid var(--borde); font-size: 12px; }
-  
-  .costo-input { width: 60px; background: var(--fondo); border: 1px solid var(--borde); color: var(--amarillo); border-radius: 4px; padding: 4px; font-size: 11px; text-align: center; }
+  .resumen-tabla th { text-align: left; padding: 8px; font-size: 8px; color: var(--texto-muted); border-bottom: 1px solid var(--borde); text-transform: uppercase; }
+  .resumen-tabla td { padding: 10px 8px; border-bottom: 1px solid var(--borde); font-size: 11px; }
+  .costo-input { width: 55px; background: var(--fondo); border: 1px solid var(--borde); color: var(--amarillo); border-radius: 4px; padding: 4px; font-size: 10px; text-align: center; }
   .input-text { width: 100%; background: var(--superficie2); border: 1px solid var(--borde); color: var(--texto); border-radius: 10px; padding: 12px; margin-top: 10px; font-family: inherit; }
-  .total-card { background: var(--superficie2); padding: 15px; border-radius: 12px; margin-bottom: 10px; border-left: 4px solid var(--amarillo); }
+  .btn-add { background: var(--amarillo); color: #1A1A1A; border: none; padding: 12px; border-radius: 10px; width: 100%; margin-top: 8px; font-weight: 800; font-size: 12px; }
 </style>
 </head>
 <body>
 <div id="app">
-  <header><h1>SDB — CONTROL Y COSTOS</h1></header>
+  <header><h1>SDB — PERSONAL Y PRESUPUESTO</h1></header>
   <div class="semana-nav">
     <button onclick="cambiarSemana(-1)">&#8249;</button>
     <div style="flex:1; text-align:center; font-weight:700; color:var(--amarillo); font-size:12px" id="nav-titulo"></div>
@@ -71,58 +62,42 @@
   <div class="dias-header" id="dias-header"></div>
   <div id="scroll-area"><div id="lista-obreros"></div></div>
 </div>
-
 <button class="fab" onclick="abrirMenu()">&#9776;</button>
-
 <div class="overlay" id="overlay" onclick="cerrarModal()">
   <div class="modal" onclick="event.stopPropagation()" id="modal-content"></div>
 </div>
-
 <script>
-// Configuración básica
 const LABELS = ['LU','MA','MI','JU','VI','SA','DO'];
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-
-// Datos persistentes
-let obreros = JSON.parse(localStorage.getItem('ob_v7')) || ['Adolf.', 'Andrs.', 'Eleu.', 'Gavin', 'Vict.', 'Nildo', 'Geron.', 'Dario.', 'Alberto Manuel', 'JuanC. Velasq.'];
-let asistencia = JSON.parse(localStorage.getItem('as_v7')) || {};
-let costos = JSON.parse(localStorage.getItem('co_v7')) || {}; // { nombre: { normal: 0, extra: 0 } }
+let obreros = JSON.parse(localStorage.getItem('ob_v9')) || ['Adolf.', 'Andrs.', 'Eleu.', 'Gavin', 'Vict.', 'Nildo', 'Geron.', 'Dario.', 'Alberto Manuel', 'JuanC. Velasq.'];
+let asistencia = JSON.parse(localStorage.getItem('as_v9')) || {};
+let costos = JSON.parse(localStorage.getItem('co_v9')) || {};
 let semanaOffset = 0;
 
 function guardar() { 
-    localStorage.setItem('ob_v7', JSON.stringify(obreros)); 
-    localStorage.setItem('as_v7', JSON.stringify(asistencia)); 
-    localStorage.setItem('co_v7', JSON.stringify(costos));
+    localStorage.setItem('ob_v9', JSON.stringify(obreros)); 
+    localStorage.setItem('as_v9', JSON.stringify(asistencia)); 
+    localStorage.setItem('co_v9', JSON.stringify(costos));
 }
 
-// Lógica de fechas
 function getLunes(o) {
-    let h = new Date();
-    let d = h.getDay();
-    let l = new Date(h);
+    let h = new Date(); let d = h.getDay(); let l = new Date(h);
     l.setDate(h.getDate() - (d === 0 ? 6 : d - 1) + o * 7);
-    l.setHours(0,0,0,0);
-    return l;
+    l.setHours(0,0,0,0); return l;
 }
 
 function getDias(o) {
     let l = getLunes(o);
-    return [0,1,2,3,4,5,6].map(x => {
-        let d = new Date(l);
-        d.setDate(l.getDate() + x);
-        return d;
-    });
+    return [0,1,2,3,4,5,6].map(x => { let d = new Date(l); d.setDate(l.getDate() + x); return d; });
 }
 
 const key = d => `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`;
 const getVal = (ob, dk) => (asistencia[ob] && asistencia[ob][dk]) ? asistencia[ob][dk] : {estado:'vacio', horas:0, nota:''};
 
-// Menú y Resúmenes
 function abrirMenu() {
   document.getElementById('modal-content').innerHTML = `
     <div class="tabs">
         <div class="tab active" onclick="tabMenu('presupuesto',this)">Presupuesto</div>
-        <div class="tab" onclick="tabMenu('sem',this)">Semana</div>
         <div class="tab" onclick="tabMenu('config',this)">Config. Costos</div>
         <div class="tab" onclick="tabMenu('pers',this)">Personal</div>
     </div>
@@ -135,72 +110,77 @@ function tabMenu(t, el) {
   const b = document.getElementById('tab-body');
   
   if (t === 'presupuesto') {
-    let totalMes = 0;
-    const ah = new Date();
-    const m = (ah.getMonth()+1).toString().padStart(2,'0');
-    const y = ah.getFullYear();
+    const ah = new Date(); const m = (ah.getMonth()+1).toString().padStart(2,'0'); const y = ah.getFullYear();
+    const ds = getDias(semanaOffset); const ksSem = ds.map(key);
+    let totalGralSem = 0, totalGralMes = 0;
 
-    // Cálculo mensual simplificado basado en lo cargado
+    let html = `<h3 style="font-size:12px; color:var(--amarillo); margin-bottom:10px">Resumen de Costos</h3>
+                <table class="resumen-tabla">
+                <tr><th>Nombre</th><th>Semana</th><th>Mes</th></tr>`;
+
     obreros.forEach(ob => {
-        const c = costos[ob] || { normal: 0, extra: 0 };
+        let semOb = 0, mesOb = 0;
+        const c = costos[ob] || { normal: 0, extra: 0, jornada: 9 };
+        const jornada = c.jornada || 9;
+        
+        ksSem.forEach(k => {
+            const v = getVal(ob, k);
+            if (v.estado === 'presente') semOb += (c.normal * jornada);
+            if (v.estado === 'horas') semOb += (c.normal * jornada) + (v.horas * c.extra);
+        });
+
         for (let k in (asistencia[ob] || {})) {
             if (k.startsWith(`${y}-${m}`)) {
                 const v = asistencia[ob][k];
-                if (v.estado === 'presente') totalMes += (c.normal * 9); // Asumimos jornada de 9hs
-                if (v.estado === 'horas') totalMes += (c.normal * 9) + (v.horas * c.extra);
+                if (v.estado === 'presente') mesOb += (c.normal * jornada);
+                if (v.estado === 'horas') mesOb += (c.normal * jornada) + (v.horas * c.extra);
             }
         }
+        totalGralSem += semOb; totalGralMes += mesOb;
+        html += `<tr><td>${ob}</td><td>$${semOb.toLocaleString()}</td><td>$${mesOb.toLocaleString()}</td></tr>`;
     });
 
-    b.innerHTML = `
-        <div class="total-card">
-            <p style="font-size:11px; color:var(--texto-muted)">GASTO MES ACTUAL (${MESES[ah.getMonth()]})</p>
-            <h2 style="color:var(--amarillo)">$ ${totalMes.toLocaleString()}</h2>
-        </div>
-        <div class="total-card" style="border-left-color: var(--verde)">
-            <p style="font-size:11px; color:var(--texto-muted)">PROYECCIÓN ANUAL EST.</p>
-            <h2 style="color:var(--verde)">$ ${(totalMes * 12).toLocaleString()}</h2>
-        </div>
-        <p style="font-size:10px; color:var(--texto-muted); padding:10px">* Los cálculos se basan en los valores cargados en 'Config. Costos' y una jornada base de 9hs.</p>
-    `;
+    html += `<tr style="background:var(--superficie2); font-weight:bold; color:var(--amarillo)">
+                <td>TOTAL</td><td>$${totalGralSem.toLocaleString()}</td><td>$${totalGralMes.toLocaleString()}</td>
+             </tr></table>`;
+    b.innerHTML = html;
 
   } else if (t === 'config') {
-    b.innerHTML = `<table class="resumen-tabla"><tr><th>Personal</th><th>$/Hora Normal</th><th>$/Hora Extra</th></tr>` + 
+    b.innerHTML = `<table class="resumen-tabla"><tr><th>Personal</th><th>$/Norm.</th><th>$/Ext.</th><th>Hs/Jorn.</th></tr>` + 
       obreros.map(ob => {
-        const c = costos[ob] || { normal: 0, extra: 0 };
+        const c = costos[ob] || { normal: 0, extra: 0, jornada: 9 };
         return `<tr>
             <td>${ob}</td>
             <td><input type="number" class="costo-input" value="${c.normal}" onchange="updateCosto('${ob}', 'normal', this.value)"></td>
             <td><input type="number" class="costo-input" value="${c.extra}" onchange="updateCosto('${ob}', 'extra', this.value)"></td>
+            <td><input type="number" class="costo-input" value="${c.jornada || 9}" onchange="updateCosto('${ob}', 'jornada', this.value)"></td>
         </tr>`;
       }).join('') + `</table>`;
 
-  } else if (t === 'sem') {
-    let ds = getDias(semanaOffset);
-    let ks = ds.map(key);
-    b.innerHTML = `<table class="resumen-tabla"><tr><th>Personal</th><th>Días</th><th>Extras</th><th>Subtotal</th></tr>` + 
-      obreros.map(ob => {
-        let p=0, h=0, sub=0;
-        const c = costos[ob] || { normal: 0, extra: 0 };
-        ks.forEach(k => { 
-            let v = getVal(ob, k); 
-            if (v.estado === 'presente' || v.estado === 'horas') { p++; sub += (c.normal * 9); }
-            if (v.estado === 'horas') { h += v.horas; sub += (v.horas * c.extra); }
-        });
-        return `<tr><td>${ob}</td><td>${p}</td><td>${h}h</td><td><strong>$${sub.toLocaleString()}</strong></td></tr>`;
-      }).join('') + `</table>`;
-
   } else {
-    b.innerHTML = obreros.map((ob, i) => `<div class="list-obrero"><span>${ob}</span><button onclick="elimOb(${i})" style="color:var(--rojo); background:none; border:none; font-size:24px">×</button></div>`).join('') + 
-      `<input type="text" id="n-nom" class="input-text" placeholder="Nuevo nombre..." onkeydown="if(event.key==='Enter') addOb()">`;
+    b.innerHTML = `
+      <div id="lista-gestion">
+        ${obreros.map((ob, i) => `<div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--borde)"><span>${ob}</span><button onclick="elimOb(${i})" style="color:var(--rojo); background:none; border:none; font-size:24px">×</button></div>`).join('')}
+      </div>
+      <div style="margin-top:15px">
+        <input type="text" id="n-nom" class="input-text" placeholder="Escribir nombre...">
+        <button class="btn-add" onclick="addOb()">AGREGAR PERSONAL</button>
+      </div>`;
   }
 }
 
 function updateCosto(ob, tipo, val) {
-    if(!costos[ob]) costos[ob] = { normal: 0, extra: 0 };
+    if(!costos[ob]) costos[ob] = { normal: 0, extra: 0, jornada: 9 };
     costos[ob][tipo] = parseFloat(val) || 0;
     guardar();
 }
+
+function addOb() { 
+    let n = document.getElementById('n-nom').value.trim(); 
+    if(n){ obreros.push(n); guardar(); tabMenu('pers', document.querySelectorAll('.tab')[2]); renderizar(); } 
+}
+
+function elimOb(i) { if(confirm('¿Eliminar de la lista?')){obreros.splice(i,1); guardar(); tabMenu('pers', document.querySelectorAll('.tab')[2]); renderizar();} }
 
 function abrirCelda(ob, dk, lbl) {
   mOb = ob; mDk = dk; const d = getVal(ob, dk);
@@ -210,26 +190,35 @@ function abrirCelda(ob, dk, lbl) {
       <button onclick="setE('presente')" style="background:var(--verde); color:white; padding:16px; border:none; border-radius:12px; font-weight:800">PRESENTE</button>
       <button onclick="setE('ausente')" style="background:var(--rojo); color:white; padding:16px; border:none; border-radius:12px; font-weight:800">AUSENTE</button>
     </div>
-    <div style="margin-top:15px"><label style="font-size:11px; color:var(--texto-muted)">HORAS EXTRA (cantidad):</label>
+    <div style="margin-top:15px"><label style="font-size:11px; color:var(--texto-muted)">HORAS EXTRA:</label>
     <input type="number" id="h-in" class="input-text" value="${d.horas||0}" step="0.5"></div>
     <textarea id="n-in" class="input-text" placeholder="Nota...">${d.nota||''}</textarea>
-    <button onclick="guardarCambios()" style="width:100%; padding:16px; background:var(--amarillo); border:none; border-radius:12px; margin-top:12px; font-weight:800; color:#1A1A1A">GUARDAR ASISTENCIA</button>`;
+    <button onclick="guardarCambios()" style="width:100%; padding:16px; background:var(--amarillo); border:none; border-radius:12px; margin-top:12px; font-weight:800; color:#1A1A1A">GUARDAR</button>`;
   mostrarModal();
 }
 
-// ... (Resto de funciones de control iguales a las anteriores pero con las nuevas keys de guardado v7)
-function guardarCambios() { let h = parseFloat(document.getElementById('h-in').value) || 0; let n = document.getElementById('n-in').value; let e = getVal(mOb, mDk).estado; if (e === 'vacio' && h > 0) e = 'horas'; if (e === 'presente' && h > 0) e = 'horas'; setE(e, h, n); }
-function setE(e, h = 0, n = "") { if (h > 0 && e !== 'ausente') e = 'horas'; if (!asistencia[mOb]) asistencia[mOb] = {}; asistencia[mOb][mDk] = {estado: e, horas: h, nota: n}; guardar(); cerrarModal(); renderizar(); }
-function addOb() { let n = document.getElementById('n-nom').value; if(n){obreros.push(n); guardar(); tabMenu('pers', document.querySelectorAll('.tab')[3]); renderizar();} }
-function elimOb(i) { if(confirm('¿Eliminar?')){obreros.splice(i,1); guardar(); tabMenu('pers', document.querySelectorAll('.tab')[3]); renderizar();} }
+function guardarCambios() {
+  let h = parseFloat(document.getElementById('h-in').value) || 0; let n = document.getElementById('n-in').value;
+  let e = getVal(mOb, mDk).estado;
+  if (e === 'vacio' && h > 0) e = 'horas';
+  if (e === 'presente' && h > 0) e = 'horas';
+  setE(e, h, n);
+}
+
+function setE(e, h = 0, n = "") {
+  if (h > 0 && e !== 'ausente') e = 'horas';
+  if (!asistencia[mOb]) asistencia[mOb] = {};
+  asistencia[mOb][mDk] = {estado: e, horas: h, nota: n};
+  guardar(); cerrarModal(); renderizar();
+}
+
 function mostrarModal() { document.getElementById('overlay').style.display = 'flex'; }
 function cerrarModal() { document.getElementById('overlay').style.display = 'none'; }
 function cambiarSemana(d) { semanaOffset += d; renderizar(); }
 
 function renderizar() {
-  const ds = getDias(semanaOffset);
-  const hoyStr = key(new Date());
-  document.getElementById('nav-titulo').textContent = 'Semana del ' + ds[0].getDate() + ' al ' + ds[6].getDate() + ' de ' + MESES[ds[6].getMonth()];
+  const ds = getDias(semanaOffset); const hoyStr = key(new Date());
+  document.getElementById('nav-titulo').textContent = 'Del ' + ds[0].getDate() + ' al ' + ds[6].getDate() + ' de ' + MESES[ds[6].getMonth()];
   document.getElementById('dias-header').innerHTML = '<div class="dia-col"></div>' + ds.map((d, i) => `<div class="dia-col ${key(d)===hoyStr?'hoy':''}">${LABELS[i]}<br>${d.getDate()}</div>`).join('');
   document.getElementById('lista-obreros').innerHTML = obreros.map(ob => `
     <div class="obrero-row"><div class="nombre">${ob}</div>
