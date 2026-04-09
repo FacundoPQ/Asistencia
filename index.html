@@ -3,22 +3,30 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>SDB — Control Final</title>
+<title>SDB — Control + Resumen</title>
 <style>
   :root { --amarillo: #F5C400; --fondo: #1A1A1A; --sup: #242424; --sup2: #2E2E2E; --borde: #3A3A3A; --texto: #F0EDE4; --verde: #3DB85A; --rojo: #E24B4A; --azul: #3498db; }
   
-  /* Evita que toda la página rebote o se mueva sola */
   html, body { background: var(--fondo); color: var(--texto); font-family: -apple-system, sans-serif; height: 100%; overflow: hidden; position: fixed; width: 100%; }
   
-  /* CABECERA FIJA: No se mueve nunca */
+  /* CABECERA FIJA AMPLIADA PARA RESUMEN */
   #header-fijo { 
-    position: absolute; top: 0; left: 0; right: 0; height: 125px;
+    position: absolute; top: 0; left: 0; right: 0; height: 180px;
     background: var(--sup); z-index: 100; border-bottom: 2px solid var(--amarillo);
   }
-  .controles { display: flex; gap: 8px; padding: 10px; }
-  .btn-acc { flex: 1; border: none; padding: 12px; border-radius: 8px; font-size: 10px; font-weight: 900; text-transform: uppercase; }
+  .controles { display: flex; gap: 8px; padding: 10px 10px 5px 10px; }
+  .btn-acc { flex: 1; border: none; padding: 10px; border-radius: 8px; font-size: 10px; font-weight: 900; text-transform: uppercase; }
   .btn-web { background: var(--amarillo); color: #1A1A1A; }
   .btn-nube { background: var(--azul); color: white; }
+
+  /* SECCIÓN DE RESUMEN SEMANAL */
+  #resumen-semanal {
+    display: flex; justify-content: space-around; background: #000; 
+    margin: 0 10px 5px 10px; padding: 8px; border-radius: 8px; border: 1px solid var(--borde);
+  }
+  .res-item { text-align: center; }
+  .res-val { display: block; font-size: 14px; font-weight: 900; color: var(--amarillo); }
+  .res-lab { font-size: 8px; color: #888; text-transform: uppercase; }
 
   .nav-sem { display: flex; align-items: center; padding: 5px 10px; background: var(--sup2); justify-content: space-between; }
   .nav-sem button { background: var(--borde); border: none; color: white; padding: 5px 15px; border-radius: 5px; }
@@ -26,10 +34,9 @@
   .grid-header { display: grid; grid-template-columns: 90px repeat(7, 1fr); background: var(--sup); }
   .d-col { text-align: center; padding: 8px 2px; font-size: 9px; font-weight: 700; color: #888; }
   
-  /* ZONA DE SCROLL: Solo esto se desliza */
   #scroll-area { 
-    position: absolute; top: 125px; bottom: 0; left: 0; right: 0;
-    overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: 50px;
+    position: absolute; top: 180px; bottom: 0; left: 0; right: 0;
+    overflow-y: auto; -webkit-overflow-scrolling: touch; 
   }
 
   .fila { display: grid; grid-template-columns: 90px repeat(7, 1fr); border-bottom: 1px solid var(--borde); align-items: center; min-height: 55px; }
@@ -40,7 +47,6 @@
   .btn-est.ausente { background: rgba(226,75,74,0.3); color: var(--rojo); }
   .btn-est.horas { background: rgba(52,152,219,0.3); color: var(--azul); border: 1px solid var(--azul); }
 
-  /* Modal centrado para evitar que el teclado rompa el diseño */
   .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
   .modal { background: var(--sup); border-radius: 15px; padding: 20px; width: 100%; max-width: 400px; border: 1px solid var(--borde); }
   .btn-op { width: 100%; padding: 15px; border-radius: 8px; border: none; font-weight: 800; margin-bottom: 10px; color: white; }
@@ -51,9 +57,16 @@
 
 <div id="header-fijo">
   <div class="controles">
-    <button class="btn-acc btn-web" onclick="guardarWeb()">💾 Guardar en Web</button>
-    <button class="btn-acc btn-nube" onclick="subirNube()">☁️ Guardar en Nube</button>
+    <button class="btn-acc btn-web" onclick="guardarWeb()">💾 Guardar Web</button>
+    <button class="btn-acc btn-nube" onclick="subirNube()">☁️ Guardar Nube</button>
   </div>
+  
+  <div id="resumen-semanal">
+    <div class="res-item"><span class="res-val" id="res-pres">0</span><span class="res-lab">Presentes</span></div>
+    <div class="res-item"><span class="res-val" id="res-aus">0</span><span class="res-lab">Ausentes</span></div>
+    <div class="res-item" style="border-left: 1px solid #333; padding-left: 10px;"><span class="res-val" id="res-hs" style="color:var(--azul)">0</span><span class="res-lab">Horas Ext.</span></div>
+  </div>
+
   <div class="nav-sem">
     <button onclick="moverSem(-1)">‹</button>
     <div id="tit-sem" style="font-size: 11px; font-weight: bold;"></div>
@@ -62,16 +75,12 @@
   <div class="grid-header" id="dias-h"></div>
 </div>
 
-<div id="scroll-area">
-  <div id="lista"></div>
-</div>
+<div id="scroll-area"><div id="lista"></div></div>
 
-<div class="overlay" id="overlay">
-  <div class="modal" id="modal-c"></div>
-</div>
+<div class="overlay" id="overlay"><div class="modal" id="modal-c"></div></div>
 
 <script>
-const URL = "TU_URL_AQUI"; // REEMPLAZAR CON TU URL /EXEC
+const URL = "TU_URL_AQUI"; 
 
 let obreros = ['Adolf.', 'Andrs.', 'Eleu.', 'Gavin', 'Vict.', 'Nildo', 'Geron.', 'Dario.', 'Alberto Manuel', 'JuanC. Velasq.'];
 let datos = JSON.parse(localStorage.getItem('sdb_local')) || {};
@@ -80,7 +89,7 @@ const DIAS = ['LU','MA','MI','JU','VI','SA','DO'];
 
 function guardarWeb() {
     localStorage.setItem('sdb_local', JSON.stringify(datos));
-    alert("Datos asegurados en la Web del celu.");
+    alert("Guardado en el celular.");
     render();
 }
 
@@ -88,8 +97,8 @@ async function subirNube() {
     const b = document.querySelector('.btn-nube'); b.textContent = "⏳ SUBIENDO...";
     try {
         await fetch(URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ obreros, asistencia: datos, costos: {} }) });
-        alert("✅ Sincronizado con Sheets."); b.textContent = "☁️ Guardar en Nube";
-    } catch (e) { alert("❌ Error de conexión."); b.textContent = "☁️ Guardar en Nube"; }
+        alert("✅ Sincronizado con Sheets."); b.textContent = "☁️ Guardar Nube";
+    } catch (e) { alert("❌ Error."); b.textContent = "☁️ Guardar Nube"; }
 }
 
 async function cargar() {
@@ -105,8 +114,25 @@ function render() {
     const h = new Date(); let l = new Date(h);
     l.setDate(h.getDate() - (h.getDay() === 0 ? 6 : h.getDay() - 1) + semOff * 7);
     const ds = [0,1,2,3,4,5,6].map(x => { let d = new Date(l); d.setDate(l.getDate() + x); return d; });
+    const keysSemana = ds.map(d => gK(d));
     
-    document.getElementById('tit-sem').textContent = "Semana del " + ds[0].getDate() + " al " + ds[6].getDate();
+    // CÁLCULO DE RESUMEN
+    let p = 0, a = 0, hex = 0;
+    obreros.forEach(ob => {
+        keysSemana.forEach(k => {
+            const reg = (datos[ob] && datos[ob][k]) ? datos[ob][k] : null;
+            if(reg) {
+                if(reg.estado === 'presente') p++;
+                if(reg.estado === 'ausente') a++;
+                if(reg.estado === 'horas') { p++; hex += parseFloat(reg.horas || 0); }
+            }
+        });
+    });
+    document.getElementById('res-pres').textContent = p;
+    document.getElementById('res-aus').textContent = a;
+    document.getElementById('res-hs').textContent = hex.toFixed(1);
+
+    document.getElementById('tit-sem').textContent = "Semana: " + ds[0].getDate() + " al " + ds[6].getDate();
     document.getElementById('dias-h').innerHTML = '<div class="d-col"></div>' + ds.map((d,i) => `<div class="d-col">${DIAS[i]}<br>${d.getDate()}</div>`).join('');
     
     document.getElementById('lista').innerHTML = obreros.map(ob => `
