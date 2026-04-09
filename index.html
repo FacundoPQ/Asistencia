@@ -2,8 +2,8 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Lista de Asistencia</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SDB — Control de Personal</title>
 <style>
   :root {
     --amarillo: #F5C400;
@@ -19,296 +19,145 @@
     --azul: #378ADD;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  body { background: var(--fondo); color: var(--texto); font-family: 'Helvetica Neue', Arial, sans-serif; min-height: 100vh; padding-bottom: 80px; }
-
-  header { background: var(--amarillo); padding: 12px 16px 10px; position: sticky; top: 0; z-index: 100; }
-  header h1 { font-size: 15px; font-weight: 700; color: #1A1A1A; letter-spacing: 0.04em; text-transform: uppercase; }
-  header .sub { font-size: 12px; color: #5A4D00; margin-top: 2px; display: flex; align-items: center; justify-content: space-between; }
-  header .sub span { font-weight: 600; }
-
-  .semana-nav { display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: var(--superficie); border-bottom: 1px solid var(--borde); }
-  .semana-nav button { background: var(--superficie2); border: 1px solid var(--borde); color: var(--texto); border-radius: 6px; padding: 6px 12px; font-size: 20px; cursor: pointer; flex-shrink: 0; }
-  .semana-nav button:active { opacity: 0.6; }
-  .semana-nav .titulo { flex: 1; text-align: center; font-size: 13px; font-weight: 600; color: var(--amarillo); }
-
-  .dias-header { display: grid; grid-template-columns: 90px repeat(6, 1fr); background: var(--superficie); border-bottom: 2px solid var(--amarillo); padding: 0 8px; position: sticky; top: 69px; z-index: 90; }
-  .dia-col { text-align: center; padding: 7px 2px; font-size: 11px; font-weight: 700; color: var(--texto-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  html, body { height: 100%; overflow: hidden; background: var(--fondo); color: var(--texto); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  #app { display: flex; flex-direction: column; height: 100%; height: -webkit-fill-available; }
+  header { background: var(--amarillo); padding: 12px 16px; flex-shrink: 0; }
+  header h1 { font-size: 15px; font-weight: 800; color: #1A1A1A; text-transform: uppercase; letter-spacing: 0.05em; }
+  .semana-nav { display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: var(--superficie); border-bottom: 1px solid var(--borde); flex-shrink: 0; }
+  .semana-nav button { background: var(--superficie2); border: 1px solid var(--borde); color: var(--texto); border-radius: 8px; padding: 6px 14px; font-size: 20px; cursor: pointer; }
+  .dias-header { display: grid; grid-template-columns: 90px repeat(6, 1fr); background: var(--superficie); border-bottom: 2px solid var(--amarillo); padding: 0 8px; flex-shrink: 0; }
+  .dia-col { text-align: center; padding: 8px 2px; font-size: 10px; font-weight: 700; color: var(--texto-muted); text-transform: uppercase; }
   .dia-col.hoy { color: var(--amarillo); }
-  .dia-col span { display: block; font-size: 10px; font-weight: 400; color: var(--texto-muted); margin-top: 1px; }
-  .dia-col.hoy span { color: var(--amarillo); }
-
+  #scroll-area { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: 80px; }
   .obrero-row { display: grid; grid-template-columns: 90px repeat(6, 1fr); border-bottom: 1px solid var(--borde); padding: 0 8px; align-items: center; min-height: 52px; }
-  .obrero-row:nth-child(even) { background: rgba(255,255,255,0.02); }
-  .nombre { font-size: 13px; font-weight: 600; color: var(--texto); padding: 8px 4px 8px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-  .celda { display: flex; align-items: center; justify-content: center; height: 52px; position: relative; }
-  .estado-btn { width: 38px; height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-direction: column; font-size: 18px; font-weight: 700; border: none; cursor: pointer; background: var(--superficie2); color: var(--texto-muted); position: relative; touch-action: manipulation; }
-  .estado-btn:active { opacity: 0.65; transform: scale(0.88); }
+  .nombre { font-size: 12px; font-weight: 700; padding: 8px 4px 8px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .celda { display: flex; align-items: center; justify-content: center; height: 52px; }
+  .estado-btn { width: 38px; height: 38px; border-radius: 8px; border: none; background: var(--superficie2); color: var(--texto-muted); font-size: 16px; font-weight: 700; position: relative; }
   .estado-btn.presente { background: rgba(61,184,90,0.18); color: var(--verde); }
-  .estado-btn.ausente  { background: rgba(226,75,74,0.18);  color: var(--rojo); }
-  .estado-btn.horas    { background: rgba(245,196,0,0.18);  color: var(--amarillo-dark); font-size: 10px; line-height: 1.15; text-align: center; }
-  .nota-dot { position: absolute; bottom: 3px; right: 3px; width: 6px; height: 6px; border-radius: 50%; }
-  .nota-dot.rojo   { background: var(--rojo); }
-  .nota-dot.amarillo { background: var(--amarillo); }
-  .nota-dot.azul   { background: var(--azul); }
-
-  .fab { position: fixed; bottom: 20px; right: 20px; width: 54px; height: 54px; border-radius: 50%; background: var(--amarillo); color: #1A1A1A; font-size: 22px; font-weight: 700; border: none; cursor: pointer; z-index: 200; box-shadow: 0 4px 16px rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; }
-  .fab:active { transform: scale(0.92); }
-
-  .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.72); z-index: 300; align-items: flex-end; justify-content: center; }
-  .overlay.visible { display: flex; }
-  .modal { background: var(--superficie); border-radius: 18px 18px 0 0; padding: 20px 20px 36px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
-  .modal-handle { width: 36px; height: 4px; background: var(--borde); border-radius: 2px; margin: 0 auto 16px; }
-  .modal h2 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
-  .modal .sub-titulo { font-size: 12px; color: var(--texto-muted); margin-bottom: 16px; }
-
-  .estado-selector { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 16px; }
-  .est-opt { padding: 10px 4px; border-radius: 10px; text-align: center; cursor: pointer; border: 1.5px solid var(--borde); background: var(--superficie2); font-size: 12px; font-weight: 600; color: var(--texto-muted); }
-  .est-opt .ico { font-size: 20px; display: block; margin-bottom: 4px; }
-  .est-opt.activo.v { border-color: var(--borde); color: var(--texto-muted); background: var(--superficie2); }
-  .est-opt.activo.p { border-color: var(--verde); color: var(--verde); background: rgba(61,184,90,0.12); }
-  .est-opt.activo.a { border-color: var(--rojo); color: var(--rojo); background: rgba(226,75,74,0.12); }
-  .est-opt.activo.h { border-color: var(--amarillo); color: var(--amarillo-dark); background: rgba(245,196,0,0.12); }
-
-  .seccion { margin-bottom: 14px; }
-  .seccion label { font-size: 12px; color: var(--texto-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 6px; }
-
-  .horas-row { display: flex; align-items: center; gap: 10px; }
-  .horas-row input[type=number] { width: 72px; background: var(--superficie2); border: 1px solid var(--borde); color: var(--texto); border-radius: 8px; padding: 10px 8px; font-size: 16px; font-weight: 700; outline: none; text-align: center; }
-  .horas-row input:focus { border-color: var(--amarillo); }
-  .horas-preset { display: flex; gap: 6px; flex-wrap: wrap; }
-  .preset-btn { padding: 7px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; background: var(--superficie2); border: 1px solid var(--borde); color: var(--texto-muted); cursor: pointer; }
-  .preset-btn.activo { background: rgba(245,196,0,0.18); border-color: var(--amarillo); color: var(--amarillo-dark); }
-  .preset-btn:active { opacity: 0.6; }
-
-  .razon-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
-  .chip { padding: 7px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; background: var(--superficie2); border: 1px solid var(--borde); color: var(--texto-muted); cursor: pointer; }
-  .chip.activo { background: rgba(226,75,74,0.18); border-color: var(--rojo); color: var(--rojo); }
-  .chip:active { opacity: 0.6; }
-
-  .nota-input { width: 100%; background: var(--superficie2); border: 1px solid var(--borde); color: var(--texto); border-radius: 10px; padding: 10px 12px; font-size: 14px; outline: none; resize: none; font-family: inherit; }
-  .nota-input:focus { border-color: var(--azul); }
-
-  .btn-row { display: flex; gap: 8px; margin-top: 6px; }
-  .btn { flex: 1; padding: 13px; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; border: none; }
-  .btn-primary { background: var(--amarillo); color: #1A1A1A; }
-  .btn-secondary { background: var(--superficie2); color: var(--texto); border: 1px solid var(--borde); }
-  .btn:active { opacity: 0.7; }
-
-  .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
-  .tab { flex: 1; padding: 9px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: 1px solid var(--borde); background: var(--superficie2); color: var(--texto-muted); text-align: center; }
-  .tab.active { background: var(--amarillo); color: #1A1A1A; border-color: var(--amarillo); }
-
-  .resumen-tabla { width: 100%; border-collapse: collapse; font-size: 13px; }
-  .resumen-tabla th { text-align: left; padding: 6px 8px; font-size: 11px; color: var(--texto-muted); font-weight: 600; border-bottom: 1px solid var(--borde); }
-  .resumen-tabla td { padding: 8px; border-bottom: 1px solid var(--borde); vertical-align: top; }
-  .resumen-tabla tr:last-child td { border-bottom: none; }
-  .pill { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 700; }
-  .pill.v { background: rgba(61,184,90,0.18); color: var(--verde); }
-  .pill.a { background: rgba(226,75,74,0.18); color: var(--rojo); }
-  .pill.h { background: rgba(245,196,0,0.18); color: var(--amarillo-dark); }
-  .nota-item { font-size: 11px; color: var(--texto-muted); padding: 2px 0; }
-  .nota-item strong { color: var(--texto); }
-
-  .list-obrero { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--borde); }
-  .list-obrero:last-child { border-bottom: none; }
-  .list-obrero span { font-size: 14px; }
-  .btn-remove { background: none; border: none; color: var(--rojo); font-size: 22px; cursor: pointer; padding: 0 4px; line-height: 1; }
-  .add-row { display: flex; gap: 8px; margin-top: 12px; }
-  .add-row input { flex: 1; background: var(--superficie2); border: 1px solid var(--borde); color: var(--texto); border-radius: 8px; padding: 10px 12px; font-size: 14px; outline: none; }
-  .add-row input:focus { border-color: var(--amarillo); }
-  .add-row button { padding: 10px 16px; border-radius: 8px; background: var(--amarillo); color: #1A1A1A; font-size: 18px; font-weight: 700; border: none; cursor: pointer; }
+  .estado-btn.ausente { background: rgba(226,75,74,0.18); color: var(--rojo); }
+  .estado-btn.horas { background: rgba(245,196,0,0.18); color: var(--amarillo-dark); font-size: 10px; }
+  .nota-dot { position: absolute; bottom: 3px; right: 3px; width: 6px; height: 6px; border-radius: 50%; background: var(--amarillo); }
+  .fab { position: fixed; bottom: 20px; right: 20px; width: 56px; height: 56px; border-radius: 50%; background: var(--amarillo); color: #1A1A1A; font-size: 24px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.4); z-index: 100; }
+  .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 200; align-items: flex-end; }
+  .modal { background: var(--superficie); border-radius: 20px 20px 0 0; padding: 20px; width: 100%; max-height: 90vh; overflow-y: auto; }
+  .tabs { display: flex; gap: 8px; margin-bottom: 15px; background: var(--fondo); padding: 4px; border-radius: 12px; }
+  .tab { flex: 1; padding: 10px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; text-align: center; color: var(--texto-muted); }
+  .tab.active { background: var(--amarillo); color: #1A1A1A; }
+  .resumen-tabla { width: 100%; border-collapse: collapse; margin-top: 10px; }
+  .resumen-tabla th { text-align: left; padding: 8px; font-size: 10px; color: var(--texto-muted); text-transform: uppercase; border-bottom: 1px solid var(--borde); }
+  .resumen-tabla td { padding: 12px 8px; border-bottom: 1px solid var(--borde); font-size: 13px; }
+  .pill { padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 800; }
+  .pill.v { background: rgba(61,184,90,0.15); color: var(--verde); }
+  .pill.a { background: rgba(226,75,74,0.15); color: var(--rojo); }
+  .pill.h { background: rgba(245,196,0,0.15); color: var(--amarillo-dark); }
+  .input-text { width: 100%; background: var(--superficie2); border: 1px solid var(--borde); color: var(--texto); border-radius: 10px; padding: 12px; margin-top: 10px; font-family: inherit; }
 </style>
 </head>
 <body>
-<header>
-  <h1>SDB — Recolecta</h1>
-  <div class="sub"><span id="rango-semana"></span><span>8:00 – 17:00 hs</span></div>
-</header>
-<div class="semana-nav">
-  <button onclick="cambiarSemana(-1)">&#8249;</button>
-  <div class="titulo" id="nav-titulo"></div>
-  <button onclick="cambiarSemana(1)">&#8250;</button>
+<div id="app">
+  <header><h1>SDB — Personal</h1></header>
+  <div class="semana-nav">
+    <button onclick="cambiarSemana(-1)">&#8249;</button>
+    <div style="flex:1; text-align:center; font-weight:700; color:var(--amarillo); font-size:13px" id="nav-titulo"></div>
+    <button onclick="cambiarSemana(1)">&#8250;</button>
+  </div>
+  <div class="dias-header" id="dias-header"></div>
+  <div id="scroll-area"><div id="lista-obreros"></div></div>
 </div>
-<div class="dias-header" id="dias-header"></div>
-<div id="lista-obreros"></div>
 <button class="fab" onclick="abrirMenu()">&#9776;</button>
 <div class="overlay" id="overlay" onclick="cerrarModal()">
   <div class="modal" onclick="event.stopPropagation()" id="modal-content"></div>
 </div>
 <script>
-const RAZONES = ['Enfermedad','Médico','Permiso','Falta sin aviso','Lluvia','Feriado'];
-const HORAS_PRESET = [1,2,3,4,6,8];
 const LABELS = ['SA','LU','MA','MI','JU','VI'];
+const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+let obreros = JSON.parse(localStorage.getItem('ob_v6')) || ['Adolf.','Andrs.','Eleu.','Gavin','Vict.','Nildo','Geron.','Dario.','Alberto Manuel','JuanC. Velasq.'];
+let asistencia = JSON.parse(localStorage.getItem('as_v6')) || {};
+let semanaOffset = 0; let mOb = '', mDk = '';
 
-let _storage = {};
-function lsGet(k,def){ try{ return localStorage.getItem(k)||def; }catch(e){ return _storage[k]||def; } }
-function lsSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){ _storage[k]=v; } }
+function guardar() { localStorage.setItem('ob_v6', JSON.stringify(obreros)); localStorage.setItem('as_v6', JSON.stringify(asistencia)); }
+function getLunes(o) { let h = new Date(); let d = h.getDay(); let l = new Date(h); l.setDate(h.getDate() - (d === 0 ? 6 : d - 1) + o * 7); l.setHours(0,0,0,0); return l; }
+function getDias(o) { let l = getLunes(o); return [-2, 0, 1, 2, 3, 4].map(x => { let d = new Date(l); d.setDate(l.getDate() + x); return d; }); }
+const key = d => `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`;
+const getVal = (ob, dk) => (asistencia[ob] && asistencia[ob][dk]) ? asistencia[ob][dk] : {estado:'vacio', horas:0, nota:''};
 
-let obreros = JSON.parse(lsGet('ob_v3','null')) || ['Adolf.','Andrs.','Eleu.','Gavin','Vict.','Nildo','Geron.','Dario.','Alberto Manuel','JuanC. Velasq.'];
-let asistencia = JSON.parse(lsGet('as_v3','{}'));
-let semanaOffset = 0;
-let modalOb='', modalDk='', modalLabel='';
-
-function guardar(){ lsSet('ob_v3',JSON.stringify(obreros)); lsSet('as_v3',JSON.stringify(asistencia)); }
-function getLunes(o){ const h=new Date(),d=h.getDay(),l=new Date(h); l.setDate(h.getDate()-(d===0?6:d-1)+o*7); l.setHours(0,0,0,0); return l; }
-function getDias(o){ const l=getLunes(o); return [-1,0,1,2,3,4].map(x=>{const d=new Date(l);d.setDate(l.getDate()+x);return d;}); }
-function fmt(d){ return d.getDate().toString().padStart(2,'0')+'/'+(d.getMonth()+1).toString().padStart(2,'0'); }
-function key(d){ return d.getFullYear()+'-'+(d.getMonth()+1).toString().padStart(2,'0')+'-'+d.getDate().toString().padStart(2,'0'); }
-function esHoy(d){ const h=new Date(); return d.getDate()===h.getDate()&&d.getMonth()===h.getMonth()&&d.getFullYear()===h.getFullYear(); }
-function get(ob,dk){ return asistencia[ob]&&asistencia[ob][dk] ? asistencia[ob][dk] : {estado:'vacio',horas:0,razon:'',nota:''}; }
-function setVal(ob,dk,data){ if(!asistencia[ob])asistencia[ob]={}; asistencia[ob][dk]={...get(ob,dk),...data}; guardar(); }
-
-function abrirCelda(ob,dk,label){ modalOb=ob; modalDk=dk; modalLabel=label; renderModalCelda(); mostrarModal(); }
-
-function renderModalCelda(){
-  const d = get(modalOb, modalDk);
-  const estados = [
-    {v:'vacio',c:'v',ico:'○',txt:'Sin marcar'},
-    {v:'presente',c:'p',ico:'✓',txt:'Presente'},
-    {v:'ausente',c:'a',ico:'✕',txt:'Ausente'},
-    {v:'horas',c:'h',ico:'+',txt:'Horas extra'}
-  ];
-  const opts = estados.map(e=>`<div class="est-opt ${d.estado===e.v?'activo '+e.c:''}" data-val="${e.v}" onclick="selEstado('${e.v}')"><span class="ico">${e.ico}</span>${e.txt}</div>`).join('');
-  const chips = RAZONES.map(r=>`<div class="chip ${d.razon===r?'activo':''}" onclick="selRazon('${r}')">${r}</div>`).join('');
-  const presets = HORAS_PRESET.map(h=>`<div class="preset-btn ${d.horas===h?'activo':''}" onclick="selPreset(${h})">${h}h</div>`).join('');
-  const libreVal = RAZONES.includes(d.razon)?'':d.razon||'';
-
+function abrirMenu() {
   document.getElementById('modal-content').innerHTML = `
-    <div class="modal-handle"></div>
-    <h2>${modalOb}</h2>
-    <div class="sub-titulo">${modalLabel}</div>
-    <div class="estado-selector">${opts}</div>
-    <div id="blq-ausente" style="${d.estado==='ausente'?'':'display:none'}">
-      <div class="seccion">
-        <label>Motivo de ausencia</label>
-        <div class="razon-chips">${chips}</div>
-        <input class="nota-input" id="inp-razon" type="text" placeholder="Otro motivo..." value="${libreVal}" style="margin-top:6px" oninput="onRazonLibre()">
-      </div>
-    </div>
-    <div id="blq-horas" style="${d.estado==='horas'?'':'display:none'}">
-      <div class="seccion">
-        <label>Horas extra realizadas</label>
-        <div class="horas-row">
-          <input type="number" id="inp-horas" value="${d.horas||6}" min="0.5" max="24" step="0.5">
-          <div class="horas-preset">${presets}</div>
-        </div>
-      </div>
-    </div>
-    <div class="seccion">
-      <label>Nota adicional</label>
-      <textarea class="nota-input" id="inp-nota" rows="2" placeholder="Sereno, llegó tarde, tarea especial...">${d.nota||''}</textarea>
-    </div>
-    <div class="btn-row">
-      <button class="btn btn-secondary" onclick="cerrarModal()">Cancelar</button>
-      <button class="btn btn-primary" onclick="guardarCelda()">Guardar</button>
-    </div>`;
-}
-
-function selEstado(v){
-  if(!asistencia[modalOb])asistencia[modalOb]={};
-  if(!asistencia[modalOb][modalDk])asistencia[modalOb][modalDk]={estado:'vacio',horas:0,razon:'',nota:''};
-  asistencia[modalOb][modalDk].estado=v;
-  renderModalCelda();
-}
-function selRazon(r){
-  if(!asistencia[modalOb])asistencia[modalOb]={};
-  if(!asistencia[modalOb][modalDk])asistencia[modalOb][modalDk]={estado:'ausente',horas:0,razon:'',nota:''};
-  const cur=asistencia[modalOb][modalDk].razon;
-  asistencia[modalOb][modalDk].razon = cur===r?'':r;
-  renderModalCelda();
-}
-function onRazonLibre(){
-  const v=document.getElementById('inp-razon').value;
-  if(v){ document.querySelectorAll('.chip').forEach(c=>c.classList.remove('activo')); if(asistencia[modalOb]&&asistencia[modalOb][modalDk])asistencia[modalOb][modalDk].razon=''; }
-}
-function selPreset(h){
-  document.getElementById('inp-horas').value=h;
-  document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('activo'));
-  event.currentTarget.classList.add('activo');
-}
-function guardarCelda(){
-  const estadoEl = document.querySelector('.est-opt.activo');
-  const estado = estadoEl ? estadoEl.dataset.val : 'vacio';
-  const chipActivo = document.querySelector('.chip.activo');
-  const libreEl = document.getElementById('inp-razon');
-  let razon = chipActivo ? chipActivo.textContent : (libreEl&&libreEl.value.trim()||'');
-  const horas = parseFloat(document.getElementById('inp-horas')?.value||0);
-  const nota = document.getElementById('inp-nota')?.value.trim()||'';
-  setVal(modalOb, modalDk, {estado, razon, horas, nota});
-  cerrarModal(); renderizar();
-}
-
-function abrirMenu(){
-  document.getElementById('modal-content').innerHTML = `
-    <div class="modal-handle"></div>
     <div class="tabs">
-      <div class="tab active" onclick="tabMenu('resumen',this)">Resumen semana</div>
-      <div class="tab" onclick="tabMenu('obreros',this)">Personal</div>
-    </div>
-    <div id="tab-body"></div>`;
-  mostrarModal();
-  tabMenu('resumen', document.querySelector('.tab.active'));
+      <div class="tab active" onclick="tabMenu('sem',this)">Semana</div>
+      <div class="tab" onclick="tabMenu('mes',this)">Resumen Mes</div>
+      <div class="tab" onclick="tabMenu('pers',this)">Personal</div>
+    </div><div id="tab-body"></div>`;
+  mostrarModal(); tabMenu('sem', document.querySelector('.tab.active'));
 }
 
-function tabMenu(tab, el){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); el.classList.add('active');
-  const body = document.getElementById('tab-body');
-  const dias = getDias(semanaOffset);
-  const dkeys = dias.map(key);
-  if(tab==='resumen'){
-    const rows = obreros.map(ob=>{
-      const p = dkeys.filter(dk=>get(ob,dk).estado==='presente').length;
-      const a = dkeys.filter(dk=>get(ob,dk).estado==='ausente').length;
-      const totalH = dkeys.reduce((s,dk)=>{const e=get(ob,dk);return e.estado==='horas'?s+(e.horas||0):s;},0);
-      const notas = dkeys.map((dk,i)=>{
-        const e=get(ob,dk);
-        if(e.estado==='ausente'&&(e.razon||e.nota)) return `<div class="nota-item"><strong>${LABELS[i]}:</strong> Ausente${e.razon?' — '+e.razon:''}${e.nota?' ('+e.nota+')':''}</div>`;
-        if(e.estado==='horas') return `<div class="nota-item"><strong>${LABELS[i]}:</strong> +${e.horas}hs extra${e.nota?' — '+e.nota:''}</div>`;
-        if(e.nota) return `<div class="nota-item"><strong>${LABELS[i]}:</strong> ${e.nota}</div>`;
-        return '';
-      }).join('');
-      return `<tr><td><strong>${ob}</strong>${notas?'<div style="margin-top:4px">'+notas+'</div>':''}</td><td style="text-align:center"><span class="pill v">${p}</span></td><td style="text-align:center">${a>0?'<span class="pill a">'+a+'</span>':'—'}</td><td style="text-align:center">${totalH>0?'<span class="pill h">+'+totalH+'h</span>':'—'}</td></tr>`;
-    }).join('');
-    body.innerHTML = `<table class="resumen-tabla"><thead><tr><th>Personal / Notas</th><th>✓</th><th>✕</th><th>Extra</th></tr></thead><tbody>${rows}</tbody></table>`;
+function tabMenu(t, el) {
+  document.querySelectorAll('.tab').forEach(x => x.classList.remove('active')); el.classList.add('active');
+  const b = document.getElementById('tab-body');
+  if (t === 'sem') {
+    const ds = getDias(semanaOffset); const ks = ds.map(key);
+    b.innerHTML = `<table class="resumen-tabla"><tr><th>Personal</th><th>✓</th><th>✕</th><th>Extras</th></tr>` + 
+      obreros.map(ob => {
+        let p = ks.filter(k => getVal(ob, k).estado === 'presente').length;
+        let a = ks.filter(k => getVal(ob, k).estado === 'ausente').length;
+        let h = ks.reduce((s, k) => s + (getVal(ob, k).estado === 'horas' ? getVal(ob, k).horas : 0), 0);
+        return `<tr><td>${ob}</td><td><span class="pill v">${p}</span></td><td><span class="pill a">${a}</span></td><td><span class="pill h">${h}h</span></td></tr>`;
+      }).join('') + `</table>`;
+  } else if (t === 'mes') {
+    const ah = new Date(); const m = ah.getMonth(); const y = ah.getFullYear();
+    b.innerHTML = `<h3 style="font-size:14px; color:var(--amarillo); margin:10px 0">${MESES[m]} ${y}</h3><table class="resumen-tabla"><tr><th>Personal</th><th>Pres.</th><th>Faltas</th><th>H.Extra</th></tr>` +
+      obreros.map(ob => {
+        let p=0, a=0, h=0; if(asistencia[ob]){ for(let k in asistencia[ob]){ let [yk, mk] = k.split('-').map(Number); if(yk===y && mk===(m+1)){ let e=asistencia[ob][k]; if(e.estado==='presente')p++; if(e.estado==='ausente')a++; if(e.estado==='horas')h+=(e.horas||0); }}}
+        return `<tr><td>${ob}</td><td><span class="pill v">${p}</span></td><td><span class="pill a">${a}</span></td><td><span class="pill h">${h}h</span></td></tr>`;
+      }).join('') + `</table>`;
   } else {
-    const lista = obreros.map((ob,i)=>`<div class="list-obrero"><span>${ob}</span><button class="btn-remove" onclick="elimOb(${i})">&#215;</button></div>`).join('');
-    body.innerHTML = `<div>${lista}</div><div class="add-row"><input type="text" id="nuevo-nombre" placeholder="Nombre del personal..."><button onclick="addOb()">+</button></div>`;
+    b.innerHTML = obreros.map((ob, i) => `<div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--borde)"><span>${ob}</span><button onclick="elimOb(${i})" style="color:var(--rojo); background:none; border:none; font-size:20px">×</button></div>`).join('') + 
+      `<input type="text" id="n-nom" class="input-text" placeholder="Nuevo nombre..." onkeydown="if(event.key==='Enter') addOb()">`;
   }
 }
 
-function elimOb(i){ if(!confirm('¿Eliminar a '+obreros[i]+'?'))return; obreros.splice(i,1); guardar(); cerrarModal(); renderizar(); }
-function addOb(){ const v=document.getElementById('nuevo-nombre')?.value.trim(); if(!v)return; obreros.push(v); guardar(); cerrarModal(); renderizar(); }
-function mostrarModal(){ document.getElementById('overlay').classList.add('visible'); }
-function cerrarModal(){ document.getElementById('overlay').classList.remove('visible'); }
-function cambiarSemana(d){ semanaOffset+=d; renderizar(); }
+function abrirCelda(ob, dk, lbl) {
+  mOb = ob; mDk = dk; const d = getVal(ob, dk);
+  document.getElementById('modal-content').innerHTML = `
+    <h2 style="font-size:16px">${ob}</h2><p style="font-size:12px; color:var(--texto-muted); margin-bottom:15px">${lbl}</p>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
+      <button onclick="setE('presente')" style="background:var(--verde); color:white; padding:16px; border:none; border-radius:12px; font-weight:800">PRESENTE</button>
+      <button onclick="setE('ausente')" style="background:var(--rojo); color:white; padding:16px; border:none; border-radius:12px; font-weight:800">AUSENTE</button>
+    </div>
+    <div style="margin-top:15px"><label style="font-size:11px; color:var(--texto-muted)">HORAS EXTRA:</label>
+    <input type="number" id="h-in" class="input-text" value="${d.horas||0}" step="0.5"></div>
+    <textarea id="n-in" class="input-text" placeholder="Agregar nota...">${d.nota||''}</textarea>
+    <button onclick="setE(getVal(mOb,mDk).estado)" style="width:100%; padding:16px; background:var(--amarillo); border:none; border-radius:12px; margin-top:12px; font-weight:800; color:#1A1A1A">GUARDAR CAMBIOS</button>`;
+  mostrarModal();
+}
 
-function renderizar(){
-  const dias = getDias(semanaOffset);
-  const dkeys = dias.map(key);
-  document.getElementById('rango-semana').textContent = fmt(dias[0])+' al '+fmt(dias[5]);
-  document.getElementById('nav-titulo').textContent = 'Semana del '+fmt(dias[0]);
-  const hdr = document.getElementById('dias-header');
-  hdr.innerHTML = '<div class="dia-col"></div>'+dias.map((d,i)=>`<div class="dia-col ${esHoy(d)?'hoy':''}">${LABELS[i]}<span>${d.getDate()}</span></div>`).join('');
-  const lista = document.getElementById('lista-obreros');
-  lista.innerHTML='';
-  obreros.forEach(ob=>{
-    const row = document.createElement('div'); row.className='obrero-row';
-    const nom = document.createElement('div'); nom.className='nombre'; nom.title=ob; nom.textContent=ob;
-    row.appendChild(nom);
-    dias.forEach((d,i)=>{
-      const dk=dkeys[i], e=get(ob,dk);
-      const celda=document.createElement('div'); celda.className='celda';
-      const btn=document.createElement('button'); btn.className='estado-btn';
-      if(e.estado==='presente'){ btn.classList.add('presente'); btn.textContent='✓'; }
-      else if(e.estado==='ausente'){ btn.classList.add('ausente'); btn.textContent='✕'; if(e.razon||e.nota){const dot=document.createElement('div');dot.className='nota-dot rojo';btn.appendChild(dot);} }
-      else if(e.estado==='horas'){ btn.classList.add('horas'); btn.innerHTML='<span>+'+( e.horas||'?')+'h</span>'; const dot=document.createElement('div');dot.className='nota-dot amarillo';btn.appendChild(dot); }
-      else if(e.nota){ const dot=document.createElement('div');dot.className='nota-dot azul';btn.appendChild(dot); }
-      btn.addEventListener('click',()=>abrirCelda(ob,dk,LABELS[i]+' '+fmt(d)));
-      celda.appendChild(btn); row.appendChild(celda);
-    });
-    lista.appendChild(row);
-  });
+function setE(e) {
+  let h = parseFloat(document.getElementById('h-in').value) || 0;
+  let n = document.getElementById('n-in').value;
+  if (h > 0 && e !== 'ausente') e = 'horas';
+  if (!asistencia[mOb]) asistencia[mOb] = {};
+  asistencia[mOb][mDk] = {estado: e, horas: h, nota: n};
+  guardar(); cerrarModal(); renderizar();
+}
+
+function addOb() { let n = document.getElementById('n-nom').value; if(n){obreros.push(n); guardar(); abrirMenu(); renderizar();} }
+function elimOb(i) { if(confirm('¿Eliminar?')){obreros.splice(i,1); guardar(); abrirMenu(); renderizar();} }
+function mostrarModal() { document.getElementById('overlay').style.display = 'flex'; }
+function cerrarModal() { document.getElementById('overlay').style.display = 'none'; }
+function cambiarSemana(d) { semanaOffset += d; renderizar(); }
+
+function renderizar() {
+  const ds = getDias(semanaOffset); const ks = ds.map(key);
+  document.getElementById('nav-titulo').textContent = 'Semana del ' + ds[0].getDate() + ' de ' + MESES[ds[0].getMonth()];
+  document.getElementById('dias-header').innerHTML = '<div class="dia-col"></div>' + ds.map(d => `<div class="dia-col ${key(d)===key(new Date())?'hoy':''}">${LABELS[d.getDay()===0?0:d.getDay()]}<br>${d.getDate()}</div>`).join('');
+  document.getElementById('lista-obreros').innerHTML = obreros.map(ob => `
+    <div class="obrero-row"><div class="nombre">${ob}</div>
+      ${ds.map(d => {
+        const e = getVal(ob, key(d));
+        let txt = e.estado === 'presente' ? '✓' : (e.estado === 'ausente' ? '✕' : (e.estado === 'horas' ? e.horas+'h' : ''));
+        return `<div class="celda"><button class="estado-btn ${e.estado}" onclick="abrirCelda('${ob}','${key(d)}','${LABELS[d.getDay()]} ${d.getDate()}')">${txt}${e.nota?'<div class="nota-dot"></div>':''}</button></div>`;
+      }).join('')}
+    </div>`).join('');
 }
 renderizar();
 </script>
