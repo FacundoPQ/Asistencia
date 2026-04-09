@@ -14,7 +14,10 @@
   /* CABECERA */
   #header-fijo { position: absolute; top: 0; left: 0; right: 0; background: var(--sup); z-index: 100; border-bottom: 2px solid var(--amarillo); padding-bottom: 5px; }
   .controles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 8px 6px; }
-  .btn-acc { border: none; padding: 10px 0; border-radius: 4px; font-size: 9px; font-weight: 900; text-transform: uppercase; cursor: pointer; text-align: center; color: white; }
+  
+  /* Botones de cabecera con letra pequeña para asegurar un renglón */
+  .btn-acc { border: none; padding: 10px 0; border-radius: 4px; font-size: 8px; font-weight: 900; text-transform: uppercase; cursor: pointer; text-align: center; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  
   .btn-web { background: var(--amarillo); color: #1A1A1A; }
   .btn-pdf-dia { background: var(--gris); }
   .btn-pdf-sem { background: var(--azul); }
@@ -32,6 +35,7 @@
   .nom { font-size: 10px; font-weight: 600; padding-left: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #eee; }
   
   .btn-est { width: 32px; height: 32px; border-radius: 5px; border: none; background: #2E2E2E; color: #444; font-size: 11px; font-weight: bold; margin: auto; display: flex; align-items: center; justify-content: center; }
+  /* Clases de estado (horas = verde, ausente = rojo) */
   .btn-est.presente, .btn-est.horas { background: rgba(61,184,90,0.25); color: var(--verde); border: 1px solid var(--verde); }
   .btn-est.ausente { background: rgba(226,75,74,0.25); color: var(--rojo); border: 1px solid var(--rojo); }
 
@@ -39,7 +43,7 @@
   #fab span { width: 22px; height: 3px; background: #1A1A1A; border-radius: 2px; }
 
   /* OVERLAYS Y TABS */
-  .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000; flex-direction: column; }
+  .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000; flex-direction: column; justify-content: center; align-items: center; }
   .overlay-content { background: var(--sup); width: 90%; max-width: 380px; padding: 25px; border-radius: 15px; border: 1px solid var(--borde); margin: auto; }
 
   .tabs-header { display: grid; grid-template-columns: repeat(4, 1fr); background: var(--sup); padding: 10px; gap: 4px; width: 100%; border-bottom: 1px solid var(--borde); box-sizing: border-box; }
@@ -52,14 +56,20 @@
   input[type="date"], input[type="number"], input[type="text"] { background: #111; border: 1px solid var(--borde); color: white; padding: 12px; border-radius: 6px; width: 100%; font-size: 16px; margin: 10px 0; box-sizing: border-box; }
   table { width: 100%; border-collapse: collapse; font-size: 12px; }
   td, th { padding: 12px 8px; border-bottom: 1px solid #333; text-align: left; }
-  .t-total { font-weight: bold; color: var(--amarillo); background: #222; }
+  
+  /* ESTILO NUEVO PARA FILA TOTAL EN PANTALLA: Celeste Oscuro sobre Celeste Muy Claro */
+  .t-total { 
+      font-weight: bold; 
+      color: #007799 !important; /* Celeste oscuro */
+      background-color: #e0f7fa !important; /* Celeste muy claro */
+  }
 </style>
 </head>
 <body>
 
 <div id="header-fijo">
   <div class="controles">
-    <button class="btn-acc btn-web" onclick="guardarWeb()">Local</button>
+    <button class="btn-acc btn-web" onclick="guardarWeb()">Guardar</button>
     <button class="btn-acc btn-pdf-dia" onclick="abrirSelectorFecha()">Diario</button>
     <button class="btn-acc btn-pdf-sem" onclick="generarPDF('semanal')">Semanal</button>
     <button class="btn-acc btn-pdf-mes" onclick="generarPDF('mensual')">Mensual</button>
@@ -79,6 +89,7 @@
 <div class="overlay" id="fecha-overlay">
   <div class="overlay-content">
     <h3 style="margin-top:0; color:var(--amarillo)">Generar Parte Diario</h3>
+    <p style="font-size:12px; color:#888; margin-bottom:5px;">Seleccione la fecha:</p>
     <input type="date" id="input-fecha-pdf">
     <button class="btn-acc" style="background:var(--verde); width:100%; height:45px; margin-top:10px" onclick="procesarPDFDiario()">GENERAR PDF</button>
     <button onclick="document.getElementById('fecha-overlay').style.display='none'" style="width:100%; background:none; border:none; color:#888; margin-top:15px">CANCELAR</button>
@@ -97,13 +108,13 @@
     <div id="t1" class="tab-content"></div>
     <div id="t2" class="tab-content"></div>
     <div id="t3" class="tab-content">
-        <h4 style="color:var(--amarillo)">Agregar Nuevo</h4>
-        <input type="text" id="nuevo-nombre" placeholder="Nombre del personal">
+        <h4 style="color:var(--amarillo); margin-top:0;">Agregar Nuevo</h4>
+        <input type="text" id="nuevo-nombre" placeholder="Nombre completo">
         <button class="btn-acc" style="background:var(--verde); width:100%; padding:12px" onclick="agregarPersonal()">AGREGAR</button>
         <div id="lista-borrar" style="margin-top:20px"></div>
     </div>
   </div>
-  <button onclick="cerrarMenu()" style="position:fixed; bottom:20px; width:90%; left:5%; padding:15px; background:var(--amarillo); border:none; border-radius:10px; font-weight:900; z-index:2100;">VOLVER A PLANILLA</button>
+  <button onclick="cerrarMenu()" style="position:fixed; bottom:20px; width:90%; left:5%; padding:15px; background:var(--amarillo); border:none; border-radius:10px; font-weight:900; z-index:2100; font-size:12px;">VOLVER A PLANILLA</button>
 </div>
 
 <div class="overlay" id="asistencia-overlay">
@@ -111,12 +122,14 @@
 </div>
 
 <script>
+// Manejo de persistencia local
 let personal = JSON.parse(localStorage.getItem('per_sdb')) || ['Adolf.', 'Andrs.', 'Eleu.', 'Gavin', 'Vict.', 'Nildo', 'Geron.', 'Dario.', 'Alberto Manuel', 'JuanC. Velasq.'];
 let asistencia = JSON.parse(localStorage.getItem('as_sdb')) || {};
 let costosConfig = JSON.parse(localStorage.getItem('co_sdb')) || {};
 let semOff = 0; let mPers = '', mDk = '';
 const DIAS = ['LU','MA','MI','JU','VI','SA','DO'];
 
+// Asegurar estructura de costos (un solo casillero)
 const syncCostos = () => personal.forEach(p => { if(!costosConfig[p]) costosConfig[p] = { valorHora: 0 }; });
 syncCostos();
 
@@ -128,20 +141,32 @@ function guardarWeb() {
     render();
 }
 
+// Helper para claves de fecha (YYYY-MM-DD)
 const gK = d => `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`;
 
 function render() {
     const h = new Date(); let l = new Date(h);
     l.setDate(h.getDate() - (h.getDay() === 0 ? 6 : h.getDay() - 1) + semOff * 7);
     const ds = [0,1,2,3,4,5,6].map(x => { let d = new Date(l); d.setDate(l.getDate() + x); return d; });
+    
+    // Título de periodo (ej: 6 al 12 ABR)
     document.getElementById('tit-sem').textContent = ds[0].getDate() + " al " + ds[6].getDate() + " " + ds[0].toLocaleString('es', {month:'short'}).toUpperCase();
+    
+    // Cabecera de días
     document.getElementById('dias-h').innerHTML = '<div class="d-col"></div>' + ds.map((d,i) => `<div class="d-col">${DIAS[i]}<br>${d.getDate()}</div>`).join('');
+    
+    // Filas de personal
     document.getElementById('lista').innerHTML = personal.map(p => `
       <div class="fila"><div class="nom">${p}</div>
         ${ds.map(d => {
-            const k = gK(d); const v = (asistencia[p] && asistencia[p][k]) ? asistencia[p][k] : {estado:'vacio'};
-            let ic = v.estado === 'ausente' ? '✕' : (v.horas > 0 ? v.horas+'h' : '');
-            let cl = v.estado === 'ausente' ? 'ausente' : (v.horas > 0 ? 'presente' : '');
+            const k = gK(d); 
+            const v = (asistencia[p] && asistencia[p][k]) ? asistencia[p][k] : {estado:'vacio', horas: 0};
+            
+            let ic = ''; let cl = '';
+            // Nueva lógica: Horas mandan. Si hay horas > 0 es Presente. Ausente es manual.
+            if(v.estado === 'ausente') { ic = '✕'; cl = 'ausente'; }
+            else if(v.horas > 0) { ic = v.horas+'h'; cl = 'presente'; }
+            
             return `<div style="text-align:center"><button class="btn-est ${cl}" onclick="abrirAsis('${p}','${k}')">${ic}</button></div>`;
         }).join('')}</div>`).join('');
 }
@@ -155,46 +180,98 @@ function procesarPDFDiario() {
     const fv = document.getElementById('input-fecha-pdf').value;
     if(!fv) return;
     const [y, m, d] = fv.split('-'); const key = `${y}-${m}-${d}`; const fLeg = `${d}/${m}/${y}`;
-    let t = `<table style="width:100%; border:1px solid #000; border-collapse:collapse; font-family:Arial; color:#000;">
-             <tr style="background:#eee;"><th>PERSONAL</th><th>ESTADO / HS</th><th>FIRMA / OBS</th></tr>`;
+    
+    let t = `<table style="width:100%; border:1px solid #000; border-collapse:collapse; font-family:Arial; color:#000; font-size:11px;">
+             <thead><tr style="background:#eee;"><th>PERSONAL</th><th>ESTADO / HS</th><th>FIRMA / OBS</th></tr></thead><tbody>`;
+    
     personal.forEach(p => {
-        const r = (asistencia[p] && asistencia[p][key]) ? asistencia[p][key] : {horas: 0};
-        let st = r.estado === 'ausente' ? '<b style="color:red">AUSENTE</b>' : (r.horas > 0 ? `<b style="color:green">PRESENTE (${r.horas} HS)</b>` : '---');
-        t += `<tr><td style="border:1px solid #000; padding:8px;">${p}</td><td style="border:1px solid #000; padding:8px;">${st}</td><td style="border:1px solid #000; padding:8px;">________________</td></tr>`;
+        const r = (asistencia[p] && asistencia[p][key]) ? asistencia[p][key] : {estado: '---', horas: 0};
+        
+        // Lógica de texto en PDF
+        let st = '';
+        if(r.estado === 'ausente') st = '<b style="color:#d32f2f">AUSENTE</b>'; // Rojo oscuro legible
+        else if(r.horas > 0) st = `<b style="color:#388e3c">PRESENTE (${r.horas} HS)</b>`; // Verde oscuro legible
+        else st = '---';
+        
+        t += `<tr><td style="border:1px solid #000; padding:8px; font-weight:bold;">${p}</td>
+                  <td style="border:1px solid #000; padding:8px;">${st}</td>
+                  <td style="border:1px solid #000; padding:8px;">________________</td></tr>`;
     });
+    t += '</tbody></table>';
+    
     const el = document.createElement('div');
-    el.innerHTML = `<div style="padding:40px; color:#000; font-family:Arial;"><h1>SDB - PARTE DIARIO</h1><p><b>FECHA:</b> ${fLeg}</p>${t}</table></div>`;
-    html2pdf().set({margin:0.5, filename:`Parte_${fLeg}.pdf`}).from(el).save();
+    el.innerHTML = `<div style="padding:40px; color:#000; font-family:Arial;">
+                    <h1 style="border-bottom:2px solid #000; margin-bottom:10px;">SDB - PARTE DIARIO</h1>
+                    <p style="font-size:14px; margin-bottom:20px;"><b>FECHA:</b> ${fLeg}</p>
+                    ${t}
+                    <div style="margin-top:40px; font-size:10px; border-top:1px solid #ccc; padding-top:10px">Resumen generado el: ${new Date().toLocaleString()}</div>
+                    </div>`;
+    
+    html2pdf().set({margin:0.5, filename:`Parte_Diario_${fLeg}.pdf`, image:{type:'jpeg', quality:1}}).from(el).save();
     document.getElementById('fecha-overlay').style.display = 'none';
 }
 
 function generarPDF(tipo) {
-    actualizarTablas();
+    actualizarTablas(); // Actualiza tablas internas antes de copiar
     const h = new Date(); let l = new Date(h);
     l.setDate(h.getDate() - (h.getDay() === 0 ? 6 : h.getDay() - 1) + semOff * 7);
     const sub = tipo === 'semanal' ? document.getElementById('tit-sem').textContent : l.toLocaleString('es',{month:'long',year:'numeric'}).toUpperCase();
+    
     const el = document.createElement('div');
-    const contenido = document.getElementById(tipo==='semanal'?'t0':'t1').innerHTML;
-    el.innerHTML = `<div style="padding:40px; font-family:Arial; color:#000;"><h1>SDB - REPORTE ${tipo.toUpperCase()}</h1><h3>PERIODO: ${sub}</h3><hr style="border:1px solid #000;"><style>table { width:100%; border-collapse:collapse; margin-top:15px; } td, th { border:1px solid #000; padding:10px; color:#000; }</style>${contenido}</div>`;
-    html2pdf().set({margin:0.5, filename:`Reporte_${tipo}_${sub}.pdf`}).from(el).save();
+    const contenidoTabla = document.getElementById(tipo==='semanal'?'t0':'t1').innerHTML;
+    
+    // OBSERVACIÓN 2: Inyectar estilo CSS específico para que en el PDF la fila total tenga celeste oscuro y fondo celeste muy claro
+    const estiloTablaPDF = `
+    <style>
+        table { width:100%; border-collapse:collapse; margin-top:15px; font-family:Arial; font-size:10px; color:#000; }
+        td, th { border:1px solid #000; padding:10px; color:#000; text-align:left; }
+        /* Celeste Oscuro (#005577) sobre Celeste Muy Claro (#e0f7fa) para legibilidad perfecta en PDF */
+        .t-total { 
+            font-weight:bold !important; 
+            color: #005577 !important; 
+            background-color: #e0f7fa !important; 
+        }
+        tr:nth-child(even):not(.t-total) { background-color: #f9f9f9; }
+    </style>
+    `;
+
+    el.innerHTML = `<div style="padding:40px; font-family:Arial; color:#000;">
+                    <h1 style="border-bottom:2px solid #000; margin-bottom:5px;">SDB - REPORTE ${tipo.toUpperCase()}</h1>
+                    <h3 style="margin-top:0;">PERIODO: ${sub}</h3>
+                    <hr style="border:0; border-top:1px solid #000;">
+                    ${estiloTablaPDF}
+                    ${contenidoTabla}
+                    <div style="margin-top:30px; font-size:9px; color:#666;">Generado: ${new Date().toLocaleString()}</div>
+                    </div>`;
+    
+    html2pdf().set({margin:0.5, filename:`Reporte_${tipo}_${sub}.pdf`, image:{type:'jpeg', quality:1}}).from(el).save();
 }
 
 function abrirAsis(p, dk) {
     mPers = p; mDk = dk;
-    const v = (asistencia[p] && asistencia[p][dk]) ? asistencia[p][dk] : {horas:''};
+    const v = (asistencia[p] && asistencia[p][dk]) ? asistencia[p][dk] : {estado:'vacio', horas:''};
     document.getElementById('modal-asistencia').innerHTML = `
       <h2 style="text-align:center; color:var(--amarillo)">${p}</h2>
-      <input type="number" id="h-in" value="${v.horas}" placeholder="Ej: 9" style="text-align:center">
-      <button class="btn-acc" style="background:var(--azul); width:100%; height:50px; margin-bottom:10px" onclick="setA('horas')">CARGAR HORAS</button>
-      <button class="btn-acc" style="background:var(--rojo); width:100%; height:50px" onclick="setA('ausente')">MARCAR AUSENTE</button>
-      <button onclick="document.getElementById('asistencia-overlay').style.display='none'" style="width:100%; background:none; border:none; color:#888; margin-top:20px">CANCELAR</button>`;
+      <div style="margin-bottom:15px">
+        <label style="font-size:12px; color:#888;">Cargar horas trabajadas:</label>
+        <input type="number" id="h-in" value="${v.horas}" placeholder="Ej: 9" style="text-align:center">
+        <button class="btn-acc" style="background:var(--azul); width:100%; height:45px;" onclick="setA('horas')">CARGAR HORAS</button>
+      </div>
+      <div style="border-top:1px solid #444; padding-top:10px">
+        <button class="btn-acc" style="background:var(--rojo); width:100%; height:45px" onclick="setA('ausente')">MARCAR AUSENTE</button>
+      </div>
+      <button onclick="document.getElementById('asistencia-overlay').style.display='none'" style="width:100%; background:none; border:none; color:#888; margin-top:20px; font-size:12px">CANCELAR</button>`;
     document.getElementById('asistencia-overlay').style.display = 'flex';
 }
 
 function setA(e) {
-    let h = parseFloat(document.getElementById('h-in').value) || 0;
+    let h_input = document.getElementById('h-in').value;
+    let h = parseFloat(h_input) || 0;
     if(!asistencia[mPers]) asistencia[mPers] = {};
+    
+    // Lógica simplificada: horas > 0 marca asistencia. Botón Ausente marca falta explícita.
     asistencia[mPers][mDk] = {estado: e, horas: h};
+    
     document.getElementById('asistencia-overlay').style.display = 'none';
     render();
 }
@@ -206,62 +283,77 @@ function verTab(n) {
     document.querySelectorAll('.tab-btn, .tab-content').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.tab-btn')[n].classList.add('active');
     document.getElementById('t' + n).classList.add('active');
+    // Forzamos actualización de contenido al cambiar de pestaña
+    if(n === 3) actualizarListaBorrar(); 
 }
 
 function actualizarTablas() {
-    let h = new Date(); let l = new Date(h);
-    l.setDate(h.getDate() - (h.getDay() === 0 ? 6 : h.getDay() - 1) + semOff * 7);
+    let h_hoy = new Date(); let l = new Date(h_hoy);
+    l.setDate(h_hoy.getDate() - (h_hoy.getDay() === 0 ? 6 : h_hoy.getDay() - 1) + semOff * 7);
     
-    // SEMANAL (T0)
+    // T0 - Semanal (Resumen Costos Semanal)
     const dsSem = [0,1,2,3,4,5,6].map(x => { let d = new Date(l); d.setDate(l.getDate() + x); return gK(d); });
-    let h0 = `<table><tr><th>PERSONAL</th><th>HS</th><th>TOTAL $</th></tr>`;
+    let h0 = `<table><thead><tr style="background:#eee; color:#000;"><th>PERSONAL</th><th>HS</th><th>TOTAL $</th></tr></thead><tbody>`;
     let tS = 0;
     personal.forEach(p => {
         let hsT = 0; const c = costosConfig[p] || {valorHora:0};
         dsSem.forEach(k => { if(asistencia[p] && asistencia[p][k]) hsT += (asistencia[p][k].horas || 0); });
         let sub = hsT * c.valorHora; tS += sub;
-        h0 += `<tr><td>${p}</td><td>${hsT}</td><td>$${sub.toLocaleString()}</td></tr>`;
+        h0 += `<tr><td style="font-weight:bold">${p}</td><td>${hsT.toLocaleString()}</td><td>$${sub.toLocaleString()}</td></tr>`;
     });
-    document.getElementById('t0').innerHTML = h0 + `<tr class="t-total"><td>TOTAL</td><td>-</td><td>$${tS.toLocaleString()}</td></tr></table>`;
+    // Clase .t-total para aplicar el color celeste en pantalla y PDF
+    document.getElementById('t0').innerHTML = h0 + `</tbody><tfoot><tr class="t-total"><td>TOTAL SEMANA</td><td>-</td><td>$${tS.toLocaleString()}</td></tr></tfoot></table>`;
     
-    // MENSUAL (T1)
-    let h1 = `<table><tr><th>PERSONAL</th><th>HS MES</th><th>SUBTOTAL</th></tr>`;
-    let tM = 0; let mesAct = l.getMonth();
+    // T1 - Mensual (Restaurado)
+    let h1 = `<table><thead><tr style="background:#eee; color:#000;"><th>PERSONAL</th><th>HS MES</th><th>TOTAL MES $</th></tr></thead><tbody>`;
+    let tM = 0; let mesAct = l.getMonth(); let anoAct = l.getFullYear();
     personal.forEach(p => {
         let hsM = 0; const c = costosConfig[p] || {valorHora:0};
         if(asistencia[p]) {
             Object.keys(asistencia[p]).forEach(k => {
-                let fechaK = new Date(k + "T12:00:00");
-                if(fechaK.getMonth() === mesAct) hsM += (asistencia[p][k].horas || 0);
+                let fechaK = new Date(k + "T12:00:00"); // Asegurar fecha correcta local
+                if(fechaK.getMonth() === mesAct && fechaK.getFullYear() === anoAct) hsM += (asistencia[p][k].horas || 0);
             });
         }
         let sub = hsM * c.valorHora; tM += sub;
-        h1 += `<tr><td>${p}</td><td>${hsM}</td><td>$${sub.toLocaleString()}</td></tr>`;
+        h1 += `<tr><td style="font-weight:bold">${p}</td><td>${hsM.toLocaleString()}</td><td>$${sub.toLocaleString()}</td></tr>`;
     });
-    document.getElementById('t1').innerHTML = h1 + `<tr class="t-total"><td>TOTAL</td><td>-</td><td>$${tM.toLocaleString()}</td></tr></table>`;
+    document.getElementById('t1').innerHTML = h1 + `</tbody><tfoot><tr class="t-total"><td>TOTAL MES</td><td>-</td><td>$${tM.toLocaleString()}</td></tr></tfoot></table>`;
 
-    // $/HORA (T2)
-    let h2 = `<table><tr><th>PERSONAL</th><th>VALOR HORA ($)</th></tr>`;
+    // T2 - $/HORA (Precios)
+    let h2 = `<table><thead><tr style="background:#eee; color:#000;"><th>PERSONAL</th><th>VALOR HORA ($)</th></tr></thead><tbody>`;
     personal.forEach(p => {
         const c = costosConfig[p] || {valorHora:0};
-        h2 += `<tr><td>${p}</td><td><input type="number" value="${c.valorHora}" onchange="costosConfig['${p}'].valorHora=parseFloat(this.value)"></td></tr>`;
+        h2 += `<tr><td>${p}</td><td><input type="number" value="${c.valorHora}" style="margin:0; font-size:12px; color:white;" onchange="costosConfig['${p}'].valorHora=parseFloat(this.value) || 0"></td></tr>`;
     });
-    document.getElementById('t2').innerHTML = h2 + `</table>`;
+    document.getElementById('t2').innerHTML = h2 + `</tbody></table>`;
+    
+    // T3 - PERSONAL (Restaurado interfaz de borrado)
+    actualizarListaBorrar();
+}
 
-    // PERSONAL (T3)
-    document.getElementById('lista-borrar').innerHTML = personal.map(p => `
-        <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid #333">
-            <span>${p}</span>
-            <button onclick="borrarPers('${p}')" style="background:var(--rojo); border:none; color:white; padding:5px 10px; border-radius:4px">BORRAR</button>
+function actualizarListaBorrar() {
+    document.getElementById('lista-borrar').innerHTML = '<h4 style="color:#aaa; border-top:1px solid #333; padding-top:10px;">Lista de Borrado</h4>' + personal.map(p => `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:12px; border-bottom:1px solid #333; background:#222; margin-bottom:2px; border-radius:4px;">
+            <span style="font-size:12px; color:white;">${p}</span>
+            <button onclick="borrarPers('${p}')" style="background:var(--rojo); border:none; color:white; padding:6px 12px; border-radius:4px; font-size:10px; font-weight:bold;">✕ BORRAR</button>
         </div>`).join('');
 }
 
 function agregarPersonal() {
-    let n = document.getElementById('nuevo-nombre').value;
-    if(n) { personal.push(n); syncCostos(); document.getElementById('nuevo-nombre').value = ''; actualizarTablas(); }
+    let n = document.getElementById('nuevo-nombre').value.trim();
+    if(n) { 
+        if(!personal.includes(n)) {
+            personal.push(n); syncCostos(); localStorage.setItem('per_sdb', JSON.stringify(personal));
+            document.getElementById('nuevo-nombre').value = ''; actualizarTablas();
+            render();
+        } else { alert('Ese nombre ya existe.'); }
+    } else { alert('Ingrese un nombre.'); }
 }
-function borrarPers(p) { if(confirm('¿Borrar a '+p+'?')) { personal = personal.filter(x => x !== p); actualizarTablas(); } }
+function borrarPers(p) { if(confirm('¿Seguro que desea borrar a '+p+'?\nSe perderán sus registros históricos.')) { personal = personal.filter(x => x !== p); localStorage.setItem('per_sdb', JSON.stringify(personal)); actualizarTablas(); render(); } }
 function moverSem(v) { semOff += v; render(); }
+
+// Inicialización
 render();
 </script>
 </body>
