@@ -3,7 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>SDB — Control de Personal</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SdB">
+<title>SdB</title>
 <style>
   :root {
     --amarillo: #F5C400;
@@ -90,21 +93,13 @@ function tabMenu(t, el) {
     let ds = [], ks = [], tit = "";
     if (t === 'sem') { ds = getDias(semanaOffset); ks = ds.map(key); tit = "Resumen Semana"; }
     else { const ah = new Date(); const m = ah.getMonth(); const y = ah.getFullYear(); tit = `${MESES[m]} ${y}`;
-           for(let k in asistencia[obreros[0]||'']){ if(k.startsWith(`${y}-${(m+1).toString().padStart(2,'0')}`)) ks.push(k); }
-           if(ks.length === 0) { // Fallback si no hay datos cargados aún
-             for(let i=1; i<=31; i++) ks.push(`${y}-${(m+1).toString().padStart(2,'0')}-${i.toString().padStart(2,'0')}`);
-           }
+           for(let obK in asistencia) { for(let k in asistencia[obK]) { if(k.startsWith(`${y}-${(m+1).toString().padStart(2,'0')}`)) if(!ks.includes(k)) ks.push(k); } }
+           if(ks.length === 0) for(let i=1; i<=31; i++) ks.push(`${y}-${(m+1).toString().padStart(2,'0')}-${i.toString().padStart(2,'0')}`);
     }
-    
     b.innerHTML = `<h3 style="font-size:13px; color:var(--amarillo); margin:5px 0 10px">${tit}</h3><table class="resumen-tabla"><tr><th>Personal</th><th>Pres.</th><th>Faltas</th><th>Extras</th></tr>` + 
       obreros.map(ob => {
         let p=0, a=0, h=0;
-        ks.forEach(k => {
-          let v = getVal(ob, k);
-          if (v.estado === 'presente' || v.estado === 'horas') p++;
-          if (v.estado === 'ausente') a++;
-          if (v.estado === 'horas') h += v.horas;
-        });
+        ks.forEach(k => { let v = getVal(ob, k); if (v.estado === 'presente' || v.estado === 'horas') p++; if (v.estado === 'ausente') a++; if (v.estado === 'horas') h += v.horas; });
         return `<tr><td>${ob}</td><td><span class="pill v">${p}</span></td><td><span class="pill a">${a}</span></td><td><span class="pill h">${h}h</span></td></tr>`;
       }).join('') + `</table>`;
   } else {
@@ -132,8 +127,8 @@ function guardarCambios() {
   let h = parseFloat(document.getElementById('h-in').value) || 0;
   let n = document.getElementById('n-in').value;
   let e = getVal(mOb, mDk).estado;
-  if (e === 'vacio' && h > 0) e = 'horas'; // Si no marcó nada pero puso horas
-  if (e === 'presente' && h > 0) e = 'horas'; // Prioridad visual a las horas
+  if (e === 'vacio' && h > 0) e = 'horas';
+  if (e === 'presente' && h > 0) e = 'horas';
   setE(e, h, n);
 }
 
