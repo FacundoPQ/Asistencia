@@ -24,17 +24,18 @@
   header h1 { font-size: 15px; font-weight: 800; color: #1A1A1A; text-transform: uppercase; }
   .semana-nav { display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: var(--superficie); border-bottom: 1px solid var(--borde); flex-shrink: 0; }
   .semana-nav button { background: var(--superficie2); border: 1px solid var(--borde); color: var(--texto); border-radius: 8px; padding: 6px 14px; font-size: 20px; }
-  .dias-header { display: grid; grid-template-columns: 90px repeat(6, 1fr); background: var(--superficie); border-bottom: 2px solid var(--amarillo); padding: 0 8px; }
+  /* Ajuste de columnas para 5 días */
+  .dias-header { display: grid; grid-template-columns: 100px repeat(5, 1fr); background: var(--superficie); border-bottom: 2px solid var(--amarillo); padding: 0 8px; }
   .dia-col { text-align: center; padding: 8px 2px; font-size: 10px; font-weight: 700; color: var(--texto-muted); }
   .dia-col.hoy { color: var(--amarillo); }
   #scroll-area { flex: 1; overflow-y: auto; padding-bottom: 80px; }
-  .obrero-row { display: grid; grid-template-columns: 90px repeat(6, 1fr); border-bottom: 1px solid var(--borde); padding: 0 8px; align-items: center; min-height: 52px; }
-  .nombre { font-size: 12px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .estado-btn { width: 38px; height: 38px; border-radius: 8px; border: none; background: var(--superficie2); color: var(--texto-muted); font-weight: 700; position: relative; }
+  .obrero-row { display: grid; grid-template-columns: 100px repeat(5, 1fr); border-bottom: 1px solid var(--borde); padding: 0 8px; align-items: center; min-height: 58px; }
+  .nombre { font-size: 13px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .estado-btn { width: 42px; height: 42px; border-radius: 10px; border: none; background: var(--superficie2); color: var(--texto-muted); font-weight: 700; position: relative; }
   .estado-btn.presente { background: rgba(61,184,90,0.18); color: var(--verde); }
   .estado-btn.ausente { background: rgba(226,75,74,0.18); color: var(--rojo); }
-  .estado-btn.horas { background: rgba(245,196,0,0.18); color: var(--amarillo-dark); font-size: 10px; }
-  .fab { position: fixed; bottom: 20px; right: 20px; width: 56px; height: 56px; border-radius: 50%; background: var(--amarillo); color: #1A1A1A; font-size: 24px; border: none; z-index: 100; }
+  .estado-btn.horas { background: rgba(245,196,0,0.18); color: var(--amarillo-dark); font-size: 11px; }
+  .fab { position: fixed; bottom: 20px; right: 20px; width: 56px; height: 56px; border-radius: 50%; background: var(--amarillo); color: #1A1A1A; font-size: 24px; border: none; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
   .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 200; align-items: flex-end; }
   .modal { background: var(--superficie); border-radius: 20px 20px 0 0; padding: 20px; width: 100%; max-height: 90vh; overflow-y: auto; }
   .tabs { display: flex; gap: 8px; margin-bottom: 15px; background: var(--fondo); padding: 4px; border-radius: 12px; }
@@ -47,7 +48,7 @@
   .pill.v { background: rgba(61,184,90,0.15); color: var(--verde); }
   .pill.a { background: rgba(226,75,74,0.15); color: var(--rojo); }
   .pill.h { background: rgba(245,196,0,0.15); color: var(--amarillo-dark); }
-  .input-text { width: 100%; background: var(--superficie2); border: 1px solid var(--borde); color: var(--texto); border-radius: 10px; padding: 12px; margin-top: 10px; }
+  .input-text { width: 100%; background: var(--superficie2); border: 1px solid var(--borde); color: var(--texto); border-radius: 10px; padding: 12px; margin-top: 10px; font-family: inherit; }
 </style>
 </head>
 <body>
@@ -74,7 +75,8 @@ let semanaOffset = 0; let mOb = '', mDk = '';
 
 function guardar() { localStorage.setItem('ob_v6', JSON.stringify(obreros)); localStorage.setItem('as_v6', JSON.stringify(asistencia)); }
 function getLunes(o) { let h = new Date(); let d = h.getDay(); let l = new Date(h); l.setDate(h.getDate() - (d === 0 ? 6 : d - 1) + o * 7); l.setHours(0,0,0,0); return l; }
-function getDias(o) { let l = getLunes(o); return [-2, 0, 1, 2, 3, 4].map(x => { let d = new Date(l); d.setDate(l.getDate() + x); return d; }); }
+// Modificado para obtener solo 5 días (LU a VI)
+function getDias(o) { let l = getLunes(o); return [0, 1, 2, 3, 4].map(x => { let d = new Date(l); d.setDate(l.getDate() + x); return d; }); }
 const key = d => `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`;
 const getVal = (ob, dk) => (asistencia[ob] && asistencia[ob][dk]) ? asistencia[ob][dk] : {estado:'vacio', horas:0, nota:''};
 
@@ -103,7 +105,7 @@ function tabMenu(t, el) {
         return `<tr><td>${ob}</td><td><span class="pill v">${p}</span></td><td><span class="pill a">${a}</span></td><td><span class="pill h">${h}h</span></td></tr>`;
       }).join('') + `</table>`;
   } else {
-    b.innerHTML = obreros.map((ob, i) => `<div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--borde)"><span>${ob}</span><button onclick="elimOb(${i})" style="color:var(--rojo); background:none; border:none; font-size:20px">×</button></div>`).join('') + 
+    b.innerHTML = obreros.map((ob, i) => `<div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--borde)"><span>${ob}</span><button onclick="elimOb(${i})" style="color:var(--rojo); background:none; border:none; font-size:24px">×</button></div>`).join('') + 
       `<input type="text" id="n-nom" class="input-text" placeholder="Nuevo nombre..." onkeydown="if(event.key==='Enter') addOb()">`;
   }
 }
@@ -140,7 +142,7 @@ function cambiarSemana(d) { semanaOffset += d; renderizar(); }
 
 function renderizar() {
   const ds = getDias(semanaOffset);
-  document.getElementById('nav-titulo').textContent = 'Semana del ' + ds[0].getDate() + ' de ' + MESES[ds[0].getMonth()];
+  document.getElementById('nav-titulo').textContent = 'Semana del ' + ds[0].getDate() + ' al ' + ds[4].getDate() + ' de ' + MESES[ds[4].getMonth()];
   document.getElementById('dias-header').innerHTML = '<div class="dia-col"></div>' + ds.map(d => `<div class="dia-col ${key(d)===key(new Date())?'hoy':''}">${LABELS[d.getDay()]}<br>${d.getDate()}</div>`).join('');
   document.getElementById('lista-obreros').innerHTML = obreros.map(ob => `
     <div class="obrero-row"><div class="nombre">${ob}</div>
