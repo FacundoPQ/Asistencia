@@ -24,7 +24,6 @@
   header h1 { font-size: 15px; font-weight: 800; color: #1A1A1A; text-transform: uppercase; }
   .semana-nav { display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: var(--superficie); border-bottom: 1px solid var(--borde); flex-shrink: 0; }
   .semana-nav button { background: var(--superficie2); border: 1px solid var(--borde); color: var(--texto); border-radius: 8px; padding: 6px 14px; font-size: 20px; }
-  /* Ajuste de columnas para 5 días */
   .dias-header { display: grid; grid-template-columns: 100px repeat(5, 1fr); background: var(--superficie); border-bottom: 2px solid var(--amarillo); padding: 0 8px; }
   .dia-col { text-align: center; padding: 8px 2px; font-size: 10px; font-weight: 700; color: var(--texto-muted); }
   .dia-col.hoy { color: var(--amarillo); }
@@ -34,7 +33,7 @@
   .estado-btn { width: 42px; height: 42px; border-radius: 10px; border: none; background: var(--superficie2); color: var(--texto-muted); font-weight: 700; position: relative; }
   .estado-btn.presente { background: rgba(61,184,90,0.18); color: var(--verde); }
   .estado-btn.ausente { background: rgba(226,75,74,0.18); color: var(--rojo); }
-  .estado-btn.horas { background: rgba(245,196,0,0.18); color: var(--amarillo-dark); font-size: 11px; }
+  .estado-btn.horas { background: rgba(245,196,0,0.18); color: var(--amarillo-dark); font-size: 11px; border: 1px solid var(--amarillo-dark); }
   .fab { position: fixed; bottom: 20px; right: 20px; width: 56px; height: 56px; border-radius: 50%; background: var(--amarillo); color: #1A1A1A; font-size: 24px; border: none; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
   .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 200; align-items: flex-end; }
   .modal { background: var(--superficie); border-radius: 20px 20px 0 0; padding: 20px; width: 100%; max-height: 90vh; overflow-y: auto; }
@@ -75,7 +74,6 @@ let semanaOffset = 0; let mOb = '', mDk = '';
 
 function guardar() { localStorage.setItem('ob_v6', JSON.stringify(obreros)); localStorage.setItem('as_v6', JSON.stringify(asistencia)); }
 function getLunes(o) { let h = new Date(); let d = h.getDay(); let l = new Date(h); l.setDate(h.getDate() - (d === 0 ? 6 : d - 1) + o * 7); l.setHours(0,0,0,0); return l; }
-// Modificado para obtener solo 5 días (LU a VI)
 function getDias(o) { let l = getLunes(o); return [0, 1, 2, 3, 4].map(x => { let d = new Date(l); d.setDate(l.getDate() + x); return d; }); }
 const key = d => `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`;
 const getVal = (ob, dk) => (asistencia[ob] && asistencia[ob][dk]) ? asistencia[ob][dk] : {estado:'vacio', horas:0, nota:''};
@@ -88,20 +86,25 @@ function abrirMenu() {
 function tabMenu(t, el) {
   document.querySelectorAll('.tab').forEach(x => x.classList.remove('active')); el.classList.add('active');
   const b = document.getElementById('tab-body');
-  if (t === 'sem') {
-    const ds = getDias(semanaOffset); const ks = ds.map(key);
-    b.innerHTML = `<table class="resumen-tabla"><tr><th>Personal</th><th>✓</th><th>✕</th><th>Extras</th></tr>` + 
+  if (t === 'sem' || t === 'mes') {
+    let ds = [], ks = [], tit = "";
+    if (t === 'sem') { ds = getDias(semanaOffset); ks = ds.map(key); tit = "Resumen Semana"; }
+    else { const ah = new Date(); const m = ah.getMonth(); const y = ah.getFullYear(); tit = `${MESES[m]} ${y}`;
+           for(let k in asistencia[obreros[0]||'']){ if(k.startsWith(`${y}-${(m+1).toString().padStart(2,'0')}`)) ks.push(k); }
+           if(ks.length === 0) { // Fallback si no hay datos cargados aún
+             for(let i=1; i<=31; i++) ks.push(`${y}-${(m+1).toString().padStart(2,'0')}-${i.toString().padStart(2,'0')}`);
+           }
+    }
+    
+    b.innerHTML = `<h3 style="font-size:13px; color:var(--amarillo); margin:5px 0 10px">${tit}</h3><table class="resumen-tabla"><tr><th>Personal</th><th>Pres.</th><th>Faltas</th><th>Extras</th></tr>` + 
       obreros.map(ob => {
-        let p = ks.filter(k => getVal(ob, k).estado === 'presente').length;
-        let a = ks.filter(k => getVal(ob, k).estado === 'ausente').length;
-        let h = ks.reduce((s, k) => s + (getVal(ob, k).estado === 'horas' ? getVal(ob, k).horas : 0), 0);
-        return `<tr><td>${ob}</td><td><span class="pill v">${p}</span></td><td><span class="pill a">${a}</span></td><td><span class="pill h">${h}h</span></td></tr>`;
-      }).join('') + `</table>`;
-  } else if (t === 'mes') {
-    const ah = new Date(); const m = ah.getMonth(); const y = ah.getFullYear();
-    b.innerHTML = `<h3 style="font-size:14px; color:var(--amarillo); margin:10px 0">${MESES[m]} ${y}</h3><table class="resumen-tabla"><tr><th>Personal</th><th>Pres.</th><th>Faltas</th><th>H.Extra</th></tr>` +
-      obreros.map(ob => {
-        let p=0, a=0, h=0; if(asistencia[ob]){ for(let k in asistencia[ob]){ let [yk, mk] = k.split('-').map(Number); if(yk===y && mk===(m+1)){ let e=asistencia[ob][k]; if(e.estado==='presente')p++; if(e.estado==='ausente')a++; if(e.estado==='horas')h+=(e.horas||0); }}}
+        let p=0, a=0, h=0;
+        ks.forEach(k => {
+          let v = getVal(ob, k);
+          if (v.estado === 'presente' || v.estado === 'horas') p++;
+          if (v.estado === 'ausente') a++;
+          if (v.estado === 'horas') h += v.horas;
+        });
         return `<tr><td>${ob}</td><td><span class="pill v">${p}</span></td><td><span class="pill a">${a}</span></td><td><span class="pill h">${h}h</span></td></tr>`;
       }).join('') + `</table>`;
   } else {
@@ -118,16 +121,23 @@ function abrirCelda(ob, dk, lbl) {
       <button onclick="setE('presente')" style="background:var(--verde); color:white; padding:16px; border:none; border-radius:12px; font-weight:800">PRESENTE</button>
       <button onclick="setE('ausente')" style="background:var(--rojo); color:white; padding:16px; border:none; border-radius:12px; font-weight:800">AUSENTE</button>
     </div>
-    <div style="margin-top:15px"><label style="font-size:11px; color:var(--texto-muted)">HORAS EXTRA:</label>
-    <input type="number" id="h-in" class="input-text" value="${d.horas||0}" step="0.5"></div>
+    <div style="margin-top:15px"><label style="font-size:11px; color:var(--texto-muted)">CARGAR HORAS EXTRA:</label>
+    <input type="number" id="h-in" class="input-text" value="${d.horas||0}" step="0.5" placeholder="Ej: 2"></div>
     <textarea id="n-in" class="input-text" placeholder="Agregar nota...">${d.nota||''}</textarea>
-    <button onclick="setE(getVal(mOb,mDk).estado)" style="width:100%; padding:16px; background:var(--amarillo); border:none; border-radius:12px; margin-top:12px; font-weight:800; color:#1A1A1A">GUARDAR</button>`;
+    <button onclick="guardarCambios()" style="width:100%; padding:16px; background:var(--amarillo); border:none; border-radius:12px; margin-top:12px; font-weight:800; color:#1A1A1A">GUARDAR</button>`;
   mostrarModal();
 }
 
-function setE(e) {
+function guardarCambios() {
   let h = parseFloat(document.getElementById('h-in').value) || 0;
   let n = document.getElementById('n-in').value;
+  let e = getVal(mOb, mDk).estado;
+  if (e === 'vacio' && h > 0) e = 'horas'; // Si no marcó nada pero puso horas
+  if (e === 'presente' && h > 0) e = 'horas'; // Prioridad visual a las horas
+  setE(e, h, n);
+}
+
+function setE(e, h = 0, n = "") {
   if (h > 0 && e !== 'ausente') e = 'horas';
   if (!asistencia[mOb]) asistencia[mOb] = {};
   asistencia[mOb][mDk] = {estado: e, horas: h, nota: n};
