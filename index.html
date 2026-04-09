@@ -97,7 +97,7 @@
 </div>
 
 <script>
-const URL = "TU_URL_AQUI"; 
+const URL = "https://script.google.com/macros/s/AKfycbzSPS1muJP35XCk0SmzEcSjfA7Ke1mpXqnFxzoo6L0VPD7bJ_dPB4uH8iPE1k-c82yZ/exec"; 
 
 let personal = ['Adolf.', 'Andrs.', 'Eleu.', 'Gavin', 'Vict.', 'Nildo', 'Geron.', 'Dario.', 'Alberto Manuel', 'JuanC. Velasq.'];
 let asistencia = JSON.parse(localStorage.getItem('as_sdb')) || {};
@@ -119,15 +119,26 @@ function guardarWeb() {
 async function subirNube() {
     const b = document.querySelector('.btn-nube'); b.textContent = "⌛ SUBIENDO...";
     try {
-        await fetch(URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ obreros: personal, asistencia, costosConfig }) });
+        // Enviamos 'personal_datos' para coincidir con el Script del Sheets
+        await fetch(URL, { 
+            method: 'POST', 
+            mode: 'no-cors', 
+            body: JSON.stringify({ 
+                personal_datos: personal, 
+                asistencia, 
+                costosConfig 
+            }) 
+        });
         alert("✅ Sincronizado con Sheets."); b.textContent = "☁️ Guardar Nube";
-    } catch (e) { alert("❌ Error."); b.textContent = "☁️ Guardar Nube"; }
+    } catch (e) { alert("❌ Error de conexión."); b.textContent = "☁️ Guardar Nube"; }
 }
 
 async function cargar() {
     try {
-        const r = await fetch(URL); const d = await r.json();
-        if(d.OBREROS_LISTA) personal = d.OBREROS_LISTA;
+        const r = await fetch(URL); 
+        const d = await r.json();
+        // Buscamos la etiqueta 'PERSONAL_LISTA' definida en el Script
+        if(d.PERSONAL_LISTA) personal = d.PERSONAL_LISTA;
         if(d.ASISTENCIA_DATA) asistencia = d.ASISTENCIA_DATA;
         if(d.COSTOS_CONFIG) costosConfig = d.COSTOS_CONFIG;
         checkConfig(); render();
