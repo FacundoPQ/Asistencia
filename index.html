@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>SDB — Control</title>
+<title>SDB — Control Profesional</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <style>
@@ -11,9 +11,8 @@
   
   html, body { background: var(--fondo); color: var(--texto); font-family: -apple-system, sans-serif; height: 100%; width: 100%; margin: 0; padding: 0; overflow: hidden; position: fixed; }
 
-  /* CABECERA REESTRUCTURADA */
+  /* CABECERA */
   #header-fijo { position: absolute; top: 0; left: 0; right: 0; background: var(--sup); z-index: 100; border-bottom: 2px solid var(--amarillo); padding-bottom: 5px; }
-  
   .controles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 8px 6px; }
   .btn-acc { border: none; padding: 10px 0; border-radius: 4px; font-size: 9px; font-weight: 900; text-transform: uppercase; cursor: pointer; text-align: center; color: white; }
   .btn-web { background: var(--amarillo); color: #1A1A1A; }
@@ -27,18 +26,8 @@
   .grid-header { display: grid; grid-template-columns: 85px repeat(7, 1fr); background: var(--sup); border-top: 1px solid var(--borde); }
   .d-col { text-align: center; padding: 6px 0; font-size: 9px; font-weight: 700; color: #888; border-left: 1px solid #2a2a2a; }
 
-  /* AREA DE LISTADO - CORREGIDA */
-  #scroll-area { 
-    position: absolute; 
-    top: 135px; /* Altura exacta de la cabecera */
-    bottom: 0; 
-    left: 0; 
-    right: 0; 
-    overflow-y: auto; 
-    -webkit-overflow-scrolling: touch; 
-    padding-bottom: 80px;
-  }
-
+  /* AREA DE LISTADO */
+  #scroll-area { position: absolute; top: 135px; bottom: 0; left: 0; right: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: 80px; }
   .fila { display: grid; grid-template-columns: 85px repeat(7, 1fr); border-bottom: 1px solid var(--borde); align-items: center; min-height: 52px; background: var(--fondo); }
   .nom { font-size: 10px; font-weight: 600; padding-left: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #eee; }
   
@@ -47,21 +36,21 @@
   .btn-est.ausente { background: rgba(226,75,74,0.25); color: var(--rojo); border: 1px solid var(--rojo); }
   .btn-est.horas { background: rgba(52,152,219,0.25); color: var(--azul); border: 1px solid var(--azul); }
 
-  /* BOTON MENU FLOTANTE */
   #fab { position: fixed; bottom: 25px; right: 20px; width: 55px; height: 55px; background: var(--amarillo); border-radius: 50%; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 4px; z-index: 150; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.6); }
   #fab span { width: 22px; height: 3px; background: #1A1A1A; border-radius: 2px; }
 
-  /* OVERLAYS */
-  .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000; flex-direction: column; }
-  .tabs { display: grid; grid-template-columns: repeat(4, 1fr); background: var(--sup); padding: 10px; gap: 5px; }
+  .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000; flex-direction: column; justify-content: center; align-items: center; }
+  .overlay-content { background: var(--sup); width: 90%; max-width: 380px; padding: 25px; border-radius: 15px; border: 1px solid var(--borde); }
+
+  .tabs { display: grid; grid-template-columns: repeat(4, 1fr); background: var(--sup); padding: 10px; gap: 5px; width: 100%; position: absolute; top:0; }
   .tab-btn { padding: 10px 2px; border: none; border-radius: 6px; background: #333; color: #888; font-size: 9px; font-weight: 800; }
   .tab-btn.active { background: var(--amarillo); color: #1A1A1A; }
-  .tab-content { flex: 1; overflow-y: auto; padding: 15px; display: none; }
+  .tab-content { width: 100%; height: 80%; overflow-y: auto; padding: 60px 20px; display: none; }
   .tab-content.active { display: block; }
   
-  table { width: 100%; border-collapse: collapse; font-size: 12px; }
-  td { padding: 12px 0; border-bottom: 1px solid #333; }
-  input { background: #333; border: 1px solid var(--borde); color: white; padding: 10px; border-radius: 6px; width: 90%; font-size: 16px; text-align: center; }
+  input[type="date"], input[type="number"] { background: #111; border: 1px solid var(--borde); color: white; padding: 12px; border-radius: 6px; width: 100%; font-size: 16px; margin: 10px 0; box-sizing: border-box; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
+  td, th { padding: 10px; border-bottom: 1px solid #333; text-align: left; }
 </style>
 </head>
 <body>
@@ -69,24 +58,31 @@
 <div id="header-fijo">
   <div class="controles">
     <button class="btn-acc btn-web" onclick="guardarWeb()">Local</button>
-    <button class="btn-acc btn-pdf-dia" onclick="generarPDFDiario()">Diario</button>
+    <button class="btn-acc btn-pdf-dia" onclick="abrirSelectorFecha()">Diario</button>
     <button class="btn-acc btn-pdf-sem" onclick="generarPDF('semanal')">Semanal</button>
     <button class="btn-acc btn-pdf-mes" onclick="generarPDF('mensual')">Mensual</button>
   </div>
   <div class="nav-sem">
-    <button onclick="moverSem(-1)" style="background:none; border:none; color:white; font-size:24px; padding: 0 10px;">‹</button>
+    <button onclick="moverSem(-1)" style="background:none; border:none; color:white; font-size:24px;">‹</button>
     <div id="tit-sem" class="tit-periodo"></div>
-    <button onclick="moverSem(1)" style="background:none; border:none; color:white; font-size:24px; padding: 0 10px;">›</button>
+    <button onclick="moverSem(1)" style="background:none; border:none; color:white; font-size:24px;">›</button>
   </div>
   <div class="grid-header" id="dias-h"></div>
 </div>
 
-<div id="scroll-area">
-  <div id="lista">
-    </div>
-</div>
+<div id="scroll-area"><div id="lista"></div></div>
 
 <button id="fab" onclick="abrirMenu()"><span></span><span></span><span></span></button>
+
+<div class="overlay" id="fecha-overlay">
+  <div class="overlay-content">
+    <h3 style="margin-top:0; color:var(--amarillo)">Generar Parte Diario</h3>
+    <p style="font-size:12px; color:#888">Seleccione la fecha de la asistencia:</p>
+    <input type="date" id="input-fecha-pdf">
+    <button class="btn-acc" style="background:var(--verde); width:100%; height:45px; margin-top:10px" onclick="procesarPDFDiario()">GENERAR PDF</button>
+    <button onclick="document.getElementById('fecha-overlay').style.display='none'" style="width:100%; background:none; border:none; color:#888; margin-top:15px">CANCELAR</button>
+  </div>
+</div>
 
 <div class="overlay" id="menu-overlay">
   <div class="tabs">
@@ -99,96 +95,124 @@
   <div id="t1" class="tab-content"></div>
   <div id="t2" class="tab-content"></div>
   <div id="t3" class="tab-content"></div>
-  <button onclick="cerrarMenu()" style="margin: 20px; padding: 18px; background: var(--amarillo); color: #1A1A1A; border: none; border-radius: 10px; font-weight: 900; font-size: 14px;">VOLVER A PLANILLA</button>
+  <button onclick="cerrarMenu()" style="position:absolute; bottom:20px; width:90%; padding:15px; background:var(--amarillo); border:none; border-radius:10px; font-weight:900;">VOLVER</button>
 </div>
 
-<div class="overlay" id="asistencia-overlay" style="justify-content:center; align-items:center; padding:20px">
-  <div id="modal-asistencia" style="background:var(--sup); width:100%; max-width:380px; padding:25px; border-radius:15px; border:1px solid var(--borde)">
-    </div>
+<div class="overlay" id="asistencia-overlay">
+  <div class="overlay-content" id="modal-asistencia"></div>
 </div>
 
 <script>
-// Datos base
 let personal = ['Adolf.', 'Andrs.', 'Eleu.', 'Gavin', 'Vict.', 'Nildo', 'Geron.', 'Dario.', 'Alberto Manuel', 'JuanC. Velasq.'];
 let asistencia = JSON.parse(localStorage.getItem('as_sdb')) || {};
 let costosConfig = JSON.parse(localStorage.getItem('co_sdb')) || {};
-let semOff = 0; 
-let mPers = '', mDk = '';
+let semOff = 0; let mPers = '', mDk = '';
 const DIAS = ['LU','MA','MI','JU','VI','SA','DO'];
 
-// Inicialización de costos si no existen
 personal.forEach(p => { if(!costosConfig[p]) costosConfig[p] = { norm: 0, ext: 0, jorn: 9 }; });
 
 function guardarWeb() {
     localStorage.setItem('as_sdb', JSON.stringify(asistencia));
     localStorage.setItem('co_sdb', JSON.stringify(costosConfig));
-    alert("Datos guardados en este celular.");
+    alert("Datos guardados.");
     render();
 }
 
 const gK = d => `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`;
 
 function render() {
-    const h = new Date(); 
-    let l = new Date(h);
+    const h = new Date(); let l = new Date(h);
     l.setDate(h.getDate() - (h.getDay() === 0 ? 6 : h.getDay() - 1) + semOff * 7);
-    
-    const ds = [0,1,2,3,4,5,6].map(x => { 
-        let d = new Date(l); 
-        d.setDate(l.getDate() + x); 
-        return d; 
-    });
-
-    // Actualizar Título
+    const ds = [0,1,2,3,4,5,6].map(x => { let d = new Date(l); d.setDate(l.getDate() + x); return d; });
     document.getElementById('tit-sem').textContent = ds[0].getDate() + " al " + ds[6].getDate() + " " + ds[0].toLocaleString('es', {month:'short'}).toUpperCase();
-    
-    // Actualizar Cabecera Días
     document.getElementById('dias-h').innerHTML = '<div class="d-col"></div>' + ds.map((d,i) => `<div class="d-col">${DIAS[i]}<br>${d.getDate()}</div>`).join('');
-    
-    // Generar Filas
     document.getElementById('lista').innerHTML = personal.map(p => `
-      <div class="fila">
-        <div class="nom">${p}</div>
+      <div class="fila"><div class="nom">${p}</div>
         ${ds.map(d => {
-            const key = gK(d);
-            const v = (asistencia[p] && asistencia[p][key]) ? asistencia[p][key] : {estado:'vacio'};
-            let icon = '';
-            if(v.estado === 'presente') icon = '✓';
-            else if(v.estado === 'ausente') icon = '✕';
-            else if(v.estado === 'horas') icon = v.horas + 'h';
-            
-            return `<div style="text-align:center">
-                      <button class="btn-est ${v.estado}" onclick="abrirAsis('${p}','${key}')">${icon}</button>
-                    </div>`;
-        }).join('')}
-      </div>`).join('');
+            const k = gK(d); const v = (asistencia[p] && asistencia[p][k]) ? asistencia[p][k] : {estado:'vacio'};
+            let ic = v.estado === 'presente' ? '✓' : (v.estado === 'ausente' ? '✕' : (v.estado === 'horas' ? v.horas+'h' : ''));
+            return `<div style="text-align:center"><button class="btn-est ${v.estado}" onclick="abrirAsis('${p}','${k}')">${ic}</button></div>`;
+        }).join('')}</div>`).join('');
 }
 
-// Lógica de reportes y menús (Simplificada para estabilidad)
-function abrirMenu() { actualizarTablas(); document.getElementById('menu-overlay').style.display = 'flex'; }
-function cerrarMenu() { document.getElementById('menu-overlay').style.display = 'none'; render(); }
+function abrirSelectorFecha() {
+    document.getElementById('input-fecha-pdf').valueAsDate = new Date();
+    document.getElementById('fecha-overlay').style.display = 'flex';
+}
 
-function verTab(n) {
-    document.querySelectorAll('.tab-btn, .tab-content').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.tab-btn')[n].classList.add('active');
-    document.getElementById('t' + n).classList.add('active');
+function procesarPDFDiario() {
+    const fechaVal = document.getElementById('input-fecha-pdf').value;
+    if(!fechaVal) return;
+    const [y, m, d] = fechaVal.split('-');
+    const key = `${y}-${m}-${d}`;
+    const fechaLegible = `${d}/${m}/${y}`;
+    
+    let tabla = `<table style="width:100%; border:1px solid #000; border-collapse:collapse; font-family:Arial; color:#000;">
+                 <tr style="background:#eee; font-weight:bold;">
+                    <th style="border:1px solid #000; padding:8px;">PERSONAL</th>
+                    <th style="border:1px solid #000; padding:8px;">ESTADO</th>
+                    <th style="border:1px solid #000; padding:8px;">FIRMA / OBS</th>
+                 </tr>`;
+    
+    personal.forEach(p => {
+        const r = (asistencia[p] && asistencia[p][key]) ? asistencia[p][key] : {estado: 'S/D'};
+        let st = r.estado === 'presente' ? 'PRESENTE' : (r.estado === 'horas' ? `EXTRA (${r.horas}h)` : (r.estado === 'ausente' ? 'AUSENTE' : 'SIN CARGAR'));
+        tabla += `<tr>
+                    <td style="border:1px solid #000; padding:8px; font-weight:bold;">${p}</td>
+                    <td style="border:1px solid #000; padding:8px;">${st}</td>
+                    <td style="border:1px solid #000; padding:8px;">________________</td>
+                  </tr>`;
+    });
+    tabla += `</table>`;
+
+    const el = document.createElement('div');
+    el.innerHTML = `<div style="padding:40px; color:#000;">
+                    <h1 style="border-bottom:2px solid #000; margin-bottom:10px;">SDB - PARTE DIARIO</h1>
+                    <p style="font-size:16px;"><b>FECHA:</b> ${fechaLegible}</p>
+                    <p style="font-size:12px; margin-bottom:20px; color:#444;">Este documento certifica la asistencia del personal en obra.</p>
+                    ${tabla}
+                    <div style="margin-top:40px; font-size:12px;">Firma Responsable: __________________________</div>
+                    </div>`;
+    
+    html2pdf().set({margin:0.5, filename:`Parte_Diario_${fechaLegible}.pdf`, image:{type:'jpeg', quality:1}}).from(el).save();
+    document.getElementById('fecha-overlay').style.display = 'none';
+}
+
+function generarPDF(tipo) {
     actualizarTablas();
+    const h = new Date(); 
+    let l = new Date(h); l.setDate(h.getDate() - (h.getDay() === 0 ? 6 : h.getDay() - 1) + semOff * 7);
+    const tit = tipo === 'semanal' ? 'REPORTE SEMANAL' : 'REPORTE MENSUAL';
+    const sub = tipo === 'semanal' ? document.getElementById('tit-sem').textContent : l.toLocaleString('es',{month:'long',year:'numeric'}).toUpperCase();
+    
+    const el = document.createElement('div');
+    // Forzamos colores negros para el PDF
+    const contenido = document.getElementById(tipo==='semanal'?'t0':'t1').innerHTML.replace(/color:var\(--amarillo\)/g, "color:#000; font-weight:bold; border-top:2px solid #000;");
+
+    el.innerHTML = `<div style="padding:40px; font-family:Arial; color:#000;">
+                    <h1 style="border-bottom:2px solid #000;">SDB - ${tit}</h1>
+                    <h3>PERIODO: ${sub}</h3><hr style="border:1px solid #000;">
+                    <div class="pdf-tabla-costos">${contenido}</div>
+                    </div>`;
+    
+    // Inyectamos estilos extra para que la tabla en el PDF tenga bordes negros
+    const style = document.createElement('style');
+    style.innerHTML = "table { width:100%; border-collapse:collapse; } td, th { border:1px solid #000; padding:8px; color:#000; }";
+    el.appendChild(style);
+
+    html2pdf().set({margin:0.5, filename:`Reporte_${tipo}_${sub}.pdf`}).from(el).save();
 }
 
 function abrirAsis(p, dk) {
     mPers = p; mDk = dk;
     const v = (asistencia[p] && asistencia[p][dk]) ? asistencia[p][dk] : {horas:''};
     document.getElementById('modal-asistencia').innerHTML = `
-      <h2 style="text-align:center; color:var(--amarillo); margin-bottom:20px;">${p}</h2>
-      <button class="btn-acc" style="background:var(--verde); width:100%; margin-bottom:10px; height:50px; font-size:14px" onclick="setA('presente')">PRESENTE</button>
-      <button class="btn-acc" style="background:var(--rojo); width:100%; margin-bottom:15px; height:50px; font-size:14px" onclick="setA('ausente')">AUSENTE</button>
-      <div style="border-top: 1px solid #444; padding-top:15px;">
-        <p style="font-size:12px; color:#888; margin-bottom:8px">Extras del día:</p>
-        <input type="number" id="h-in" style="width:100%; margin-bottom:10px; background:#111; color:white;" value="${v.horas}" placeholder="0">
-        <button class="btn-acc" style="background:var(--azul); width:100%; height:50px; font-size:14px" onclick="setA('horas')">CARGAR HORAS EXTRA</button>
-      </div>
-      <button onclick="document.getElementById('asistencia-overlay').style.display='none'" style="width:100%; background:none; border:none; color:#888; margin-top:20px; font-size:14px">CERRAR</button>
-    `;
+      <h2 style="text-align:center; color:var(--amarillo)">${p}</h2>
+      <button class="btn-acc" style="background:var(--verde); width:100%; margin-bottom:10px; height:50px" onclick="setA('presente')">PRESENTE</button>
+      <button class="btn-acc" style="background:var(--rojo); width:100%; margin-bottom:15px; height:50px" onclick="setA('ausente')">AUSENTE</button>
+      <input type="number" id="h-in" value="${v.horas}" placeholder="Horas Extra">
+      <button class="btn-acc" style="background:var(--azul); width:100%; height:50px" onclick="setA('horas')">CARGAR EXTRAS</button>
+      <button onclick="document.getElementById('asistencia-overlay').style.display='none'" style="width:100%; background:none; border:none; color:#888; margin-top:15px">CERRAR</button>`;
     document.getElementById('asistencia-overlay').style.display = 'flex';
 }
 
@@ -200,40 +224,18 @@ function setA(e) {
     render();
 }
 
-function moverSem(v) { semOff += v; render(); }
-
-// Funciones de Reporte (PDF)
-function generarPDFDiario() {
-    const hoy = new Date(); const k = gK(hoy);
-    let t = `<table border="1" style="width:100%; border-collapse:collapse; font-family:Arial; text-align:left;">
-             <tr style="background:#eee"><th>PERSONAL</th><th>ESTADO</th><th>OBS.</th></tr>`;
-    personal.forEach(p => {
-        const r = (asistencia[p] && asistencia[p][k]) ? asistencia[p][k] : {estado: '---'};
-        let st = r.estado === 'presente' ? 'PRESENTE' : (r.estado === 'horas' ? `EXTRA (${r.horas}h)` : (r.estado === 'ausente' ? 'AUSENTE' : 'SIN CARGAR'));
-        t += `<tr><td style="padding:10px">${p}</td><td style="padding:10px">${st}</td><td style="padding:10px">__________</td></tr>`;
-    });
-    const el = document.createElement('div');
-    el.innerHTML = `<div style="padding:30px"><h1>SDB - PARTE DIARIO</h1><p><b>Fecha:</b> ${hoy.toLocaleDateString()}</p><br>${t}</table></div>`;
-    html2pdf().set({margin:1, filename:`Diario_${k}.pdf`}).from(el).save();
-}
-
-function generarPDF(tipo) {
+function abrirMenu() { actualizarTablas(); document.getElementById('menu-overlay').style.display = 'flex'; }
+function cerrarMenu() { document.getElementById('menu-overlay').style.display = 'none'; render(); }
+function verTab(n) {
+    document.querySelectorAll('.tab-btn, .tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn')[n].classList.add('active');
+    document.getElementById('t' + n).classList.add('active');
     actualizarTablas();
-    const h = new Date(); 
-    let l = new Date(h); l.setDate(h.getDate() - (h.getDay() === 0 ? 6 : h.getDay() - 1) + semOff * 7);
-    const tit = tipo === 'semanal' ? 'REPORTE SEMANAL' : 'REPORTE MENSUAL';
-    const sub = tipo === 'semanal' ? document.getElementById('tit-sem').textContent : l.toLocaleString('es',{month:'long',year:'numeric'}).toUpperCase();
-    const el = document.createElement('div');
-    el.innerHTML = `<div style="padding:30px; font-family:Arial"><h2>SDB - ${tit}</h2><p><b>Periodo:</b> ${sub}</p><hr>${document.getElementById(tipo==='semanal'?'t0':'t1').innerHTML}</div>`;
-    html2pdf().set({margin:0.5, filename:`${tipo}_${sub}.pdf`}).from(el).save();
 }
 
 function actualizarTablas() {
-    // Lógica para llenar T0, T1, T2, T3 (Resumen de costos y personal)
     let l = new Date(); l.setDate(l.getDate() - (l.getDay() === 0 ? 6 : l.getDay() - 1) + semOff * 7);
     const dsSem = [0,1,2,3,4,5,6].map(x => { let d = new Date(l); d.setDate(l.getDate() + x); return gK(d); });
-
-    // Tabla Semanal (T0)
     let h0 = `<table><tr><th>NOMBRE</th><th>HS</th><th>TOTAL</th></tr>`;
     let tS = 0;
     personal.forEach(p => {
@@ -247,10 +249,9 @@ function actualizarTablas() {
         });
         tS += m; h0 += `<tr><td>${p}</td><td>${hsT}</td><td>$${m.toLocaleString()}</td></tr>`;
     });
-    document.getElementById('t0').innerHTML = h0 + `<tr style="color:var(--amarillo); font-weight:bold"><td>TOTAL</td><td>-</td><td>$${tS.toLocaleString()}</td></tr></table>`;
-
-    // Tabla Precios (T2)
-    let h2 = `<table><tr><th>NOMBRE</th><th>$/HORA</th><th>$/EXTRA</th></tr>`;
+    document.getElementById('t0').innerHTML = h0 + `<tr style="color:var(--amarillo)"><td>TOTAL</td><td>-</td><td>$${tS.toLocaleString()}</td></tr></table>`;
+    
+    let h2 = `<table><tr><th>NOMBRE</th><th>$/H</th><th>$/E</th></tr>`;
     personal.forEach(p => {
         const c = costosConfig[p] || {norm:0, ext:0, jorn:9};
         h2 += `<tr><td>${p}</td>
@@ -261,7 +262,7 @@ function actualizarTablas() {
     document.getElementById('t2').innerHTML = h2 + `</table>`;
 }
 
-// Ejecutar al cargar
+function moverSem(v) { semOff += v; render(); }
 render();
 </script>
 </body>
