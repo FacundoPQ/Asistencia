@@ -3,183 +3,149 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>SDB — Control Dual</title>
+<title>SDB — Control Final</title>
 <style>
-  :root { 
-    --amarillo: #F5C400; --fondo: #1A1A1A; --superficie: #242424; 
-    --superficie2: #2E2E2E; --borde: #3A3A3A; --texto: #F0EDE4; 
-    --verde: #3DB85A; --rojo: #E24B4A; --azul: #3498db;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { 
-    background: var(--fondo); color: var(--texto); 
-    font-family: -apple-system, sans-serif; height: 100vh; 
-    display: flex; flex-direction: column; overflow: hidden;
-  }
+  :root { --amarillo: #F5C400; --fondo: #1A1A1A; --sup: #242424; --sup2: #2E2E2E; --borde: #3A3A3A; --texto: #F0EDE4; --verde: #3DB85A; --rojo: #E24B4A; --azul: #3498db; }
   
-  /* Panel de Control Superior */
-  header { 
-    background: var(--superficie); padding: 10px; 
-    display: flex; flex-direction: column; gap: 10px;
-    border-bottom: 2px solid var(--amarillo);
-  }
-  .controles-superiores { display: flex; gap: 8px; }
+  /* Evita que toda la página rebote o se mueva sola */
+  html, body { background: var(--fondo); color: var(--texto); font-family: -apple-system, sans-serif; height: 100%; overflow: hidden; position: fixed; width: 100%; }
   
-  .btn-accion { 
-    flex: 1; border: none; padding: 12px; border-radius: 8px; 
-    font-size: 10px; font-weight: 900; text-transform: uppercase;
-    transition: 0.2s;
+  /* CABECERA FIJA: No se mueve nunca */
+  #header-fijo { 
+    position: absolute; top: 0; left: 0; right: 0; height: 125px;
+    background: var(--sup); z-index: 100; border-bottom: 2px solid var(--amarillo);
   }
-  .btn-local { background: var(--amarillo); color: #1A1A1A; }
+  .controles { display: flex; gap: 8px; padding: 10px; }
+  .btn-acc { flex: 1; border: none; padding: 12px; border-radius: 8px; font-size: 10px; font-weight: 900; text-transform: uppercase; }
+  .btn-web { background: var(--amarillo); color: #1A1A1A; }
   .btn-nube { background: var(--azul); color: white; }
-  .btn-accion:active { opacity: 0.7; transform: scale(0.98); }
 
-  .semana-nav { 
-    display: flex; align-items: center; padding: 5px 10px; 
-    background: var(--superficie2); justify-content: space-between;
-  }
-  .semana-nav button { background: var(--borde); border: none; color: white; padding: 5px 15px; border-radius: 5px; }
+  .nav-sem { display: flex; align-items: center; padding: 5px 10px; background: var(--sup2); justify-content: space-between; }
+  .nav-sem button { background: var(--borde); border: none; color: white; padding: 5px 15px; border-radius: 5px; }
 
-  .dias-header { display: grid; grid-template-columns: 90px repeat(7, 1fr); background: var(--superficie); }
-  .dia-col { text-align: center; padding: 8px 2px; font-size: 9px; font-weight: 700; color: #888; }
+  .grid-header { display: grid; grid-template-columns: 90px repeat(7, 1fr); background: var(--sup); }
+  .d-col { text-align: center; padding: 8px 2px; font-size: 9px; font-weight: 700; color: #888; }
   
-  #scroll-area { flex: 1; overflow-y: auto; }
-  .obrero-row { 
-    display: grid; grid-template-columns: 90px repeat(7, 1fr); 
-    border-bottom: 1px solid var(--borde); align-items: center; min-height: 55px; 
+  /* ZONA DE SCROLL: Solo esto se desliza */
+  #scroll-area { 
+    position: absolute; top: 125px; bottom: 0; left: 0; right: 0;
+    overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: 50px;
   }
-  .nombre { font-size: 10px; font-weight: 700; padding-left: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  
-  .estado-btn { 
-    width: 32px; height: 32px; border-radius: 6px; border: none; 
-    background: var(--superficie2); color: #444; font-size: 12px; font-weight: bold; margin: auto;
-  }
-  .estado-btn.presente { background: rgba(61,184,90,0.3); color: var(--verde); }
-  .estado-btn.ausente { background: rgba(226,75,74,0.3); color: var(--rojo); }
-  .estado-btn.horas { background: rgba(52,152,219,0.3); color: var(--azul); border: 1px solid var(--azul); }
 
+  .fila { display: grid; grid-template-columns: 90px repeat(7, 1fr); border-bottom: 1px solid var(--borde); align-items: center; min-height: 55px; }
+  .nom { font-size: 10px; font-weight: 700; padding-left: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  
+  .btn-est { width: 32px; height: 32px; border-radius: 6px; border: none; background: var(--sup2); color: #444; font-size: 12px; font-weight: bold; margin: auto; }
+  .btn-est.presente { background: rgba(61,184,90,0.3); color: var(--verde); }
+  .btn-est.ausente { background: rgba(226,75,74,0.3); color: var(--rojo); }
+  .btn-est.horas { background: rgba(52,152,219,0.3); color: var(--azul); border: 1px solid var(--azul); }
+
+  /* Modal centrado para evitar que el teclado rompa el diseño */
   .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
-  .modal { background: var(--superficie); border-radius: 15px; padding: 20px; width: 100%; max-width: 400px; border: 1px solid var(--borde); }
-  .btn-opcion { width: 100%; padding: 15px; border-radius: 8px; border: none; font-weight: 800; margin-bottom: 10px; }
-  .input-extra { width: 100%; background: var(--fondo); border: 1px solid var(--borde); color: white; padding: 15px; border-radius: 8px; margin: 10px 0; font-size: 18px; text-align: center; }
+  .modal { background: var(--sup); border-radius: 15px; padding: 20px; width: 100%; max-width: 400px; border: 1px solid var(--borde); }
+  .btn-op { width: 100%; padding: 15px; border-radius: 8px; border: none; font-weight: 800; margin-bottom: 10px; color: white; }
+  .in-h { width: 100%; background: var(--fondo); border: 1px solid var(--borde); color: white; padding: 15px; border-radius: 8px; margin: 10px 0; font-size: 18px; text-align: center; }
 </style>
 </head>
 <body>
 
-<header>
-  <div class="controles-superiores">
-    <button class="btn-accion btn-local" onclick="confirmarLocal()">💾 Guardar en Web</button>
-    <button class="btn-accion btn-nube" onclick="enviarANube()">☁️ Guardar en Nube</button>
+<div id="header-fijo">
+  <div class="controles">
+    <button class="btn-acc btn-web" onclick="guardarWeb()">💾 Guardar en Web</button>
+    <button class="btn-acc btn-nube" onclick="subirNube()">☁️ Guardar en Nube</button>
   </div>
-</header>
-
-<div class="semana-nav">
-  <button onclick="cambiarSemana(-1)">‹</button>
-  <div id="nav-titulo" style="font-size: 11px; font-weight: bold;"></div>
-  <button onclick="cambiarSemana(1)">›</button>
+  <div class="nav-sem">
+    <button onclick="moverSem(-1)">‹</button>
+    <div id="tit-sem" style="font-size: 11px; font-weight: bold;"></div>
+    <button onclick="moverSem(1)">›</button>
+  </div>
+  <div class="grid-header" id="dias-h"></div>
 </div>
 
-<div class="dias-header" id="dias-header"></div>
-<div id="scroll-area"><div id="lista-obreros"></div></div>
+<div id="scroll-area">
+  <div id="lista"></div>
+</div>
 
 <div class="overlay" id="overlay">
-  <div class="modal" id="modal-content"></div>
+  <div class="modal" id="modal-c"></div>
 </div>
 
 <script>
-const WEB_APP_URL = "TU_URL_DE_GOOGLE_AQUI"; 
+const URL = "TU_URL_AQUI"; // REEMPLAZAR CON TU URL /EXEC
 
 let obreros = ['Adolf.', 'Andrs.', 'Eleu.', 'Gavin', 'Vict.', 'Nildo', 'Geron.', 'Dario.', 'Alberto Manuel', 'JuanC. Velasq.'];
-// Datos temporales de la sesión actual
-let asistenciaTemp = JSON.parse(localStorage.getItem('as_sdb_local')) || {};
-let costos = {}; 
-let semanaOffset = 0; let mOb = '', mDk = '';
-const LABELS = ['LU','MA','MI','JU','VI','SA','DO'];
+let datos = JSON.parse(localStorage.getItem('sdb_local')) || {};
+let semOff = 0; let mOb = '', mDk = '';
+const DIAS = ['LU','MA','MI','JU','VI','SA','DO'];
 
-// BOTÓN 1: GUARDA SOLO EN EL CELULAR (PARA VER CAMBIOS EN WEB)
-function confirmarLocal() {
-    localStorage.setItem('as_sdb_local', JSON.stringify(asistenciaTemp));
-    alert("Cambios guardados en la Web. (Todavía no están en el Sheets)");
-    renderizar();
+function guardarWeb() {
+    localStorage.setItem('sdb_local', JSON.stringify(datos));
+    alert("Datos asegurados en la Web del celu.");
+    render();
 }
 
-// BOTÓN 2: ENVÍA LO QUE ESTÁ EN EL CELULAR AL SHEETS
-async function enviarANube() {
-    const btn = document.querySelector('.btn-nube');
-    btn.textContent = "⏳ SUBIENDO...";
+async function subirNube() {
+    const b = document.querySelector('.btn-nube'); b.textContent = "⏳ SUBIENDO...";
     try {
-        await fetch(WEB_APP_URL, { 
-            method: 'POST', 
-            mode: 'no-cors', 
-            body: JSON.stringify({ obreros, asistencia: asistenciaTemp, costos }) 
-        });
-        alert("✅ Sincronizado con Google Sheets con éxito.");
-        btn.textContent = "☁️ Guardar en Nube";
-    } catch (e) {
-        alert("❌ Error de red. Reintentá.");
-        btn.textContent = "☁️ Guardar en Nube";
-    }
+        await fetch(URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ obreros, asistencia: datos, costos: {} }) });
+        alert("✅ Sincronizado con Sheets."); b.textContent = "☁️ Guardar en Nube";
+    } catch (e) { alert("❌ Error de conexión."); b.textContent = "☁️ Guardar en Nube"; }
 }
 
-async function inicializar() {
+async function cargar() {
     try {
-        const res = await fetch(WEB_APP_URL);
-        const data = await res.json();
-        if(data && data.ASISTENCIA_DATA) {
-            asistenciaTemp = data.ASISTENCIA_DATA;
-            renderizar();
-        }
-    } catch (e) { renderizar(); }
+        const r = await fetch(URL); const d = await r.json();
+        if(d && d.ASISTENCIA_DATA) { datos = d.ASISTENCIA_DATA; render(); }
+    } catch (e) { render(); }
 }
 
-const key = d => `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`;
+const gK = d => `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`;
 
-function renderizar() {
-    const h = new Date(); let dHoy = h.getDay(); let l = new Date(h);
-    l.setDate(h.getDate() - (dHoy === 0 ? 6 : dHoy - 1) + semanaOffset * 7);
+function render() {
+    const h = new Date(); let l = new Date(h);
+    l.setDate(h.getDate() - (h.getDay() === 0 ? 6 : h.getDay() - 1) + semOff * 7);
     const ds = [0,1,2,3,4,5,6].map(x => { let d = new Date(l); d.setDate(l.getDate() + x); return d; });
     
-    document.getElementById('nav-titulo').textContent = "Semana: " + ds[0].getDate() + " al " + ds[6].getDate();
-    document.getElementById('dias-header').innerHTML = '<div class="dia-col"></div>' + ds.map((d,i) => `<div class="dia-col">${LABELS[i]}<br>${d.getDate()}</div>`).join('');
+    document.getElementById('tit-sem').textContent = "Semana del " + ds[0].getDate() + " al " + ds[6].getDate();
+    document.getElementById('dias-h').innerHTML = '<div class="d-col"></div>' + ds.map((d,i) => `<div class="d-col">${DIAS[i]}<br>${d.getDate()}</div>`).join('');
     
-    document.getElementById('lista-obreros').innerHTML = obreros.map(ob => `
-      <div class="obrero-row">
-        <div class="nombre">${ob}</div>
+    document.getElementById('lista').innerHTML = obreros.map(ob => `
+      <div class="fila">
+        <div class="nom">${ob}</div>
         ${ds.map(d => {
-            const v = (asistenciaTemp[ob] && asistenciaTemp[ob][key(d)]) ? asistenciaTemp[ob][key(d)] : {estado:'vacio'};
+            const v = (datos[ob] && datos[ob][gK(d)]) ? datos[ob][gK(d)] : {estado:'vacio'};
             let t = v.estado === 'presente' ? '✓' : (v.estado === 'ausente' ? '✕' : (v.estado === 'horas' ? v.horas+'h' : ''));
-            return `<div style="text-align:center"><button class="estado-btn ${v.estado}" onclick="abrirCelda('${ob}','${key(d)}')">${t}</button></div>`;
+            return `<div style="text-align:center"><button class="btn-est ${v.estado}" onclick="abrir('${ob}','${gK(d)}')">${t}</button></div>`;
         }).join('')}
       </div>`).join('');
 }
 
-function abrirCelda(ob, dk) {
+function abrir(ob, dk) {
     mOb = ob; mDk = dk;
-    const v = (asistenciaTemp[ob] && asistenciaTemp[ob][dk]) ? asistenciaTemp[ob][dk] : {horas:0};
-    document.getElementById('modal-content').innerHTML = `
+    const v = (datos[ob] && datos[ob][dk]) ? datos[ob][dk] : {horas:''};
+    document.getElementById('modal-c').innerHTML = `
       <h3 style="text-align:center; color:var(--amarillo); margin-bottom:15px">${ob}</h3>
-      <button class="btn-opcion" style="background:var(--verde); color:white" onclick="setTemp('presente')">MARCAR PRESENTE</button>
-      <button class="btn-opcion" style="background:var(--rojo); color:white" onclick="setTemp('ausente')">MARCAR AUSENTE</button>
-      <input type="number" id="h-in" class="input-extra" value="${v.horas || ''}" placeholder="0.0">
-      <button class="btn-opcion" style="background:var(--azul); color:white" onclick="setTemp('horas')">CARGAR HORAS EXTRA</button>
-      <button onclick="cerrarModal()" style="width:100%; background:none; border:none; color:#888; margin-top:10px">Cerrar sin cambiar</button>
+      <button class="btn-op" style="background:var(--verde)" onclick="set('presente')">PRESENTE</button>
+      <button class="btn-op" style="background:var(--rojo)" onclick="set('ausente')">AUSENTE</button>
+      <input type="number" id="h-in" class="in-h" value="${v.horas}" placeholder="0">
+      <button class="btn-op" style="background:var(--azul)" onclick="set('horas')">GUARDAR HORAS</button>
+      <button onclick="cerrar()" style="width:100%; background:none; border:none; color:#888; margin-top:10px">CANCELAR</button>
     `;
     document.getElementById('overlay').style.display = 'flex';
 }
 
-function setTemp(e) {
-    let h = parseFloat(document.getElementById('h-in')?.value) || 0;
+function set(e) {
+    let h = parseFloat(document.getElementById('h-in').value) || 0;
     if(e === 'horas' && h === 0) e = 'presente';
-    if(!asistenciaTemp[mOb]) asistenciaTemp[mOb] = {};
-    asistenciaTemp[mOb][mDk] = {estado: e, horas: h};
-    cerrarModal();
-    renderizar(); // Actualiza la vista pero NO guarda permanentemente hasta tocar el botón de arriba
+    if(!datos[mOb]) datos[mOb] = {};
+    datos[mOb][mDk] = {estado: e, horas: h};
+    cerrar(); render();
 }
 
-function cambiarSemana(v) { semanaOffset += v; renderizar(); }
-function cerrarModal() { document.getElementById('overlay').style.display = 'none'; }
+function moverSem(v) { semOff += v; render(); }
+function cerrar() { document.getElementById('overlay').style.display = 'none'; }
 
-inicializar();
+cargar();
 </script>
 </body>
 </html>
